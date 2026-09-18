@@ -34,6 +34,12 @@ const EMPTY: CategoryRequest = {
   isActive: true,
 };
 
+const resolveUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http") || url.startsWith("/")) return url;
+  return `/${url}`;
+};
+
 export default function AdminCategories() {
   const { showToast } = useAuthContext();
   const { data: categories = [], isLoading, isError, refetch } =
@@ -183,68 +189,75 @@ export default function AdminCategories() {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="border-t border-gray-100 hover:bg-soft/50 transition"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-soft rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-                            {c.imageUrl ? (
-                              <img
-                                src={c.imageUrl}
-                                alt=""
-                                className="max-h-full max-w-full object-contain p-0.5"
-                              />
-                            ) : (
-                              <FolderTree size={16} className="text-muted" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-navy text-xs">
-                              {c.name}
+                  {categories.map((c) => {
+                    const boxUrl = c.iconUrl || c.imageUrl;
+                    return (
+                      <tr
+                        key={c.id}
+                        className="border-t border-gray-100 hover:bg-soft/50 transition"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-soft rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                              {boxUrl ? (
+                                <img
+                                  src={resolveUrl(boxUrl)}
+                                  alt=""
+                                  className="max-h-full max-w-full object-contain p-0.5"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).style.display =
+                                      "none";
+                                  }}
+                                />
+                              ) : (
+                                <FolderTree size={16} className="text-muted" />
+                              )}
                             </div>
-                            {c.description && (
-                              <div className="text-[11px] text-muted line-clamp-1 max-w-[250px]">
-                                {c.description}
+                            <div>
+                              <div className="font-semibold text-navy text-xs">
+                                {c.name}
                               </div>
-                            )}
+                              {c.description && (
+                                <div className="text-[11px] text-muted line-clamp-1 max-w-[250px]">
+                                  {c.description}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono text-muted">
-                        {c.slug}
-                      </td>
-                      <td className="px-4 py-3 text-xs font-bold text-navy">
-                        {c.productCount || 0}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted">
-                        {c.displayOrder}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge color={c.isActive ? "green" : "gray"}>
-                          {c.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1">
-                          <button
-                            onClick={() => openEdit(c)}
-                            className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            onClick={() => confirmDelete(c)}
-                            className="w-8 h-8 rounded-lg hover:bg-red-50 text-danger flex items-center justify-center"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono text-muted">
+                          {c.slug}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-bold text-navy">
+                          {c.productCount || 0}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted">
+                          {c.displayOrder}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge color={c.isActive ? "green" : "gray"}>
+                            {c.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              onClick={() => openEdit(c)}
+                              className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => confirmDelete(c)}
+                              className="w-8 h-8 rounded-lg hover:bg-red-50 text-danger flex items-center justify-center"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -278,7 +291,7 @@ export default function AdminCategories() {
               placeholder="Windows"
             />
             <Input
-              label="Slug (optional — auto-generated)"
+              label="Slug"
               value={form.slug || ""}
               onChange={(e) => update_("slug", e.target.value)}
               placeholder="windows"
@@ -308,7 +321,7 @@ export default function AdminCategories() {
               placeholder="/categories/windows.png"
             />
             <Input
-              label="Icon URL (optional)"
+              label="Icon URL"
               value={form.iconUrl || ""}
               onChange={(e) => update_("iconUrl", e.target.value)}
               placeholder="/variant/window1.png"
@@ -332,8 +345,8 @@ export default function AdminCategories() {
                 type="button"
                 onClick={() => update_("isActive", !form.isActive)}
                 className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border transition w-full ${form.isActive
-                  ? "border-success/30 bg-success/5"
-                  : "border-gray-200 bg-gray-50"
+                    ? "border-success/30 bg-success/5"
+                    : "border-gray-200 bg-gray-50"
                   }`}
               >
                 <span
@@ -405,7 +418,9 @@ export default function AdminCategories() {
                 </p>
                 <div className="flex gap-2.5">
                   <button
-                    onClick={() => setConfirmState({ open: false, category: null })}
+                    onClick={() =>
+                      setConfirmState({ open: false, category: null })
+                    }
                     disabled={del.isPending}
                     className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
                   >

@@ -41,11 +41,15 @@ const EMPTY: ProductRequest = {
   isActive: true,
 };
 
-// ✅ NEW — License type options
 const LICENSE_OPTIONS = ["1 User", "2 User", "3 User", "5 User", "10 User"];
-
-// ✅ NEW — Duration options
 const DURATION_OPTIONS = ["1 Year", "3 Year"];
+
+// helper — fixes relative paths like "products/x.png" → "/products/x.png"
+const resolveUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http") || url.startsWith("/")) return url;
+  return `/${url}`;
+};
 
 export default function AdminProducts() {
   const { showToast } = useAuthContext();
@@ -71,42 +75,44 @@ export default function AdminProducts() {
 
   const [toast, setToast] = useState<string | null>(null);
 
-  // Filter states
+  // ── Popover open state (declared BEFORE any useEffect that uses it) ──
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // ── APPLIED filters ─────────────────────────────
+  const [filterName, setFilterName] = useState("");
   const [filterCategory, setFilterCategory] = useState<number | "ALL">("ALL");
   const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
   const [filterLicense, setFilterLicense] = useState<string>("ALL");
+  const [filterPriceMin, setFilterPriceMin] = useState<string>("");
+  const [filterPriceMax, setFilterPriceMax] = useState<string>("");
 
-  // Draft filter states
+  // ── DRAFT filters (popover) ─────────────────────
+  const [draftName, setDraftName] = useState("");
   const [draftCategory, setDraftCategory] = useState<number | "ALL">("ALL");
   const [draftStatus, setDraftStatus] = useState<"ALL" | "active" | "inactive">("ALL");
   const [draftLicense, setDraftLicense] = useState<string>("ALL");
+  const [draftPriceMin, setDraftPriceMin] = useState<string>("");
+  const [draftPriceMax, setDraftPriceMax] = useState<string>("");
 
   const filterRef = useRef<HTMLDivElement>(null);
 
+  // ── Toast auto-dismiss ──────────────────────────
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, [toast]);
 
+  // ── Close popover on outside click / ESC ────────
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        setFilterOpen(false);
-        setDraftCategory(filterCategory);
-        setDraftStatus(filterStatus);
-        setDraftLicense(filterLicense);
+        closeFilterAndResetDrafts();
       }
     };
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setFilterOpen(false);
-        setDraftCategory(filterCategory);
-        setDraftStatus(filterStatus);
-        setDraftLicense(filterLicense);
-      }
+      if (e.key === "Escape") closeFilterAndResetDrafts();
     };
     document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onEsc);
@@ -114,27 +120,53 @@ export default function AdminProducts() {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEsc);
     };
-  }, [filterOpen, filterCategory, filterStatus, filterLicense]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    filterOpen,
+    filterName,
+    filterCategory,
+    filterStatus,
+    filterLicense,
+    filterPriceMin,
+    filterPriceMax,
+  ]);
 
   const products = data?.content || [];
   const totalPages = data?.totalPages || 1;
 
   const filtered = useMemo(() => {
+    const min = filterPriceMin ? Number(filterPriceMin) : null;
+    const max = filterPriceMax ? Number(filterPriceMax) : null;
+    const q = filterName.trim().toLowerCase();
+
     return products.filter((p) => {
+      if (q && !p.title.toLowerCase().includes(q)) return false;
       if (filterCategory !== "ALL" && p.categoryId !== filterCategory) return false;
       if (filterStatus === "active" && !p.isActive) return false;
       if (filterStatus === "inactive" && p.isActive) return false;
       if (filterLicense !== "ALL" && p.licenseType !== filterLicense) return false;
+      if (min !== null && p.price < min) return false;
+      if (max !== null && p.price > max) return false;
       return true;
     });
-  }, [products, filterCategory, filterStatus, filterLicense]);
+  }, [
+    products,
+    filterName,
+    filterCategory,
+    filterStatus,
+    filterLicense,
+    filterPriceMin,
+    filterPriceMax,
+  ]);
 
   const hasFilters =
+    filterName !== "" ||
     filterCategory !== "ALL" ||
     filterStatus !== "ALL" ||
-    filterLicense !== "ALL";
+    filterLicense !== "ALL" ||
+    filterPriceMin !== "" ||
+    filterPriceMax !== "";
 
-  // ✅ Use fixed license options for filter
   const licenseTypes = LICENSE_OPTIONS;
 
   const openCreate = () => {
@@ -162,6 +194,7 @@ export default function AdminProducts() {
       stockQuantity: p.stockQuantity ?? 0,
       isFeatured: p.isFeatured,
       isActive: p.isActive,
+      displayOrder: p.displayOrder ?? 0,
       images: p.images || [],
     });
     setError("");
@@ -216,27 +249,51 @@ export default function AdminProducts() {
   };
 
   const openFilter = () => {
+    setDraftName(filterName);
     setDraftCategory(filterCategory);
     setDraftStatus(filterStatus);
     setDraftLicense(filterLicense);
+    setDraftPriceMin(filterPriceMin);
+    setDraftPriceMax(filterPriceMax);
     setFilterOpen(true);
   };
 
+  const closeFilterAndResetDrafts = () => {
+    setFilterOpen(false);
+    setDraftName(filterName);
+    setDraftCategory(filterCategory);
+    setDraftStatus(filterStatus);
+    setDraftLicense(filterLicense);
+    setDraftPriceMin(filterPriceMin);
+    setDraftPriceMax(filterPriceMax);
+  };
+
   const applyFilter = () => {
+    setFilterName(draftName);
     setFilterCategory(draftCategory);
     setFilterStatus(draftStatus);
     setFilterLicense(draftLicense);
+    setFilterPriceMin(draftPriceMin);
+    setFilterPriceMax(draftPriceMax);
     setFilterOpen(false);
     setToast("Filter applied");
   };
 
   const clearFilter = () => {
+    setDraftName("");
     setDraftCategory("ALL");
     setDraftStatus("ALL");
     setDraftLicense("ALL");
+    setDraftPriceMin("");
+    setDraftPriceMax("");
+
+    setFilterName("");
     setFilterCategory("ALL");
     setFilterStatus("ALL");
     setFilterLicense("ALL");
+    setFilterPriceMin("");
+    setFilterPriceMax("");
+
     setFilterOpen(false);
     setToast("Filter cleared");
   };
@@ -260,11 +317,10 @@ export default function AdminProducts() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
                   ? "border-brand/40 bg-brand/5 text-brand"
                   : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -276,7 +332,7 @@ export default function AdminProducts() {
             </button>
 
             {filterOpen && (
-              <div className="absolute right-0 mt-2 w-[520px] max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
+              <div className="absolute right-0 mt-2 w-[560px] max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
                 <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
                   <span className="text-xs font-bold text-navy uppercase tracking-wider">
                     Filters
@@ -289,6 +345,21 @@ export default function AdminProducts() {
                   </button>
                 </div>
 
+                {/* Row 1: Name */}
+                <div className="mb-3">
+                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    placeholder="Search by product title..."
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                  />
+                </div>
+
+                {/* Row 2: Category + Status + License */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
@@ -345,6 +416,34 @@ export default function AdminProducts() {
                         </option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                {/* Row 3: Price Min + Max */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Price Min (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={draftPriceMin}
+                      onChange={(e) => setDraftPriceMin(e.target.value)}
+                      placeholder="0"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Price Max (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={draftPriceMax}
+                      onChange={(e) => setDraftPriceMax(e.target.value)}
+                      placeholder="100000"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
                   </div>
                 </div>
 
@@ -433,11 +532,15 @@ export default function AdminProducts() {
                           <div className="w-10 h-10 bg-soft rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                             <img
                               src={
-                                p.thumbnailUrl ||
+                                resolveUrl(p.thumbnailUrl) ||
                                 "https://placehold.co/40x40?text=P"
                               }
                               alt=""
                               className="max-h-full max-w-full object-contain p-0.5"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src =
+                                  "https://placehold.co/40x40?text=P";
+                              }}
                             />
                           </div>
                           <div className="min-w-0">
@@ -659,7 +762,7 @@ export default function AdminProducts() {
               <input
                 value={form.thumbnailUrl || ""}
                 onChange={(e) => update_("thumbnailUrl", e.target.value)}
-                placeholder="/uploads/product.png"
+                placeholder="/products/windows11.png"
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
@@ -670,13 +773,12 @@ export default function AdminProducts() {
               <input
                 value={form.downloadFilePath || ""}
                 onChange={(e) => update_("downloadFilePath", e.target.value)}
-                placeholder="/software/win11.zip"
+                placeholder="/software/windows11pro.zip"
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
           </div>
 
-          {/* License + Duration dropdowns + Display Order */}
           <div className="grid grid-cols-3 gap-2.5">
             <div>
               <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
@@ -755,25 +857,21 @@ export default function AdminProducts() {
                   key={t.key}
                   type="button"
                   onClick={() => update_(t.key as any, !val)}
-                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${
-                    val ? t.borderColor : "border-gray-200 bg-gray-50"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${val ? t.borderColor : "border-gray-200 bg-gray-50"
+                    }`}
                 >
                   <span
-                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${
-                      val ? t.activeColor : "bg-gray-300"
-                    }`}
+                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${val ? t.activeColor : "bg-gray-300"
+                      }`}
                   >
                     <span
-                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${
-                        val ? "translate-x-[12px]" : "translate-x-0.5"
-                      }`}
+                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${val ? "translate-x-[12px]" : "translate-x-0.5"
+                        }`}
                     />
                   </span>
                   <span
-                    className={`text-[10px] font-bold ${
-                      val ? t.textColor : "text-muted"
-                    }`}
+                    className={`text-[10px] font-bold ${val ? t.textColor : "text-muted"
+                      }`}
                   >
                     {t.label}
                   </span>

@@ -33,20 +33,26 @@ export default function AdminOrders() {
   const [search, setSearch] = useState("");
   const [minAmount, setMinAmount] = useState<string>("");
   const [maxAmount, setMaxAmount] = useState<string>("");
-  const [selected, setSelected] = useState<Order | null>(null);
 
-  // Draft filters
+  // filters
+  const [customer, setCustomer] = useState<string>("");
+  const [product, setProduct] = useState<string>("");
+  const [selected, setSelected] = useState<Order | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [draftSearch, setDraftSearch] = useState("");
   const [draftStatus, setDraftStatus] = useState<StatusFilter>("ALL");
   const [draftMinAmount, setDraftMinAmount] = useState<string>("");
   const [draftMaxAmount, setDraftMaxAmount] = useState<string>("");
 
+  // draft
+  const [draftCustomer, setDraftCustomer] = useState<string>("");
+  const [draftProduct, setDraftProduct] = useState<string>("");
+
   const filterRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isError, refetch, isRefetching } = useAdminOrders(
     page,
-    20,
+    10,
     status !== "ALL" ? status : undefined,
     search || undefined
   );
@@ -63,14 +69,12 @@ export default function AdminOrders() {
   const [downloading, setDownloading] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  // Toast auto-dismiss
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Close filter popover on outside click / ESC
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
@@ -80,6 +84,8 @@ export default function AdminOrders() {
         setDraftStatus(status);
         setDraftMinAmount(minAmount);
         setDraftMaxAmount(maxAmount);
+        setDraftCustomer(customer);
+        setDraftProduct(product);
       }
     };
     const onEsc = (e: KeyboardEvent) => {
@@ -89,6 +95,8 @@ export default function AdminOrders() {
         setDraftStatus(status);
         setDraftMinAmount(minAmount);
         setDraftMaxAmount(maxAmount);
+        setDraftCustomer(customer);
+        setDraftProduct(product);
       }
     };
     document.addEventListener("mousedown", onClickOutside);
@@ -97,38 +105,55 @@ export default function AdminOrders() {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEsc);
     };
-  }, [filterOpen, search, status, minAmount, maxAmount]);
+  }, [filterOpen, search, status, minAmount, maxAmount, customer, product]);
 
   const rawOrders = data?.content || [];
   const totalPages = data?.totalPages || 1;
   const totalElements = data?.totalElements || 0;
 
-  // Client-side amount range filter
+  // Client-side filters: amount, customer, product
   const orders = useMemo(() => {
     const min = minAmount ? Number(minAmount) : null;
     const max = maxAmount ? Number(maxAmount) : null;
+    const cq = customer.trim().toLowerCase();
+    const pq = product.trim().toLowerCase();
+
     return rawOrders.filter((o) => {
       if (min !== null && o.total < min) return false;
       if (max !== null && o.total > max) return false;
+
+      if (cq) {
+        const name = (o.customerName || "").toLowerCase();
+        const email = (o.customerEmail || "").toLowerCase();
+        if (!name.includes(cq) && !email.includes(cq)) return false;
+      }
+
+      if (pq) {
+        const match = (o.items || []).some((it) =>
+          (it.productTitle || "").toLowerCase().includes(pq)
+        );
+        if (!match) return false;
+      }
+
       return true;
     });
-  }, [rawOrders, minAmount, maxAmount]);
+  }, [rawOrders, minAmount, maxAmount, customer, product]);
 
-  // Stats from current page
   const stats = useMemo(() => {
-    const pending = orders.filter((o) => o.status === "PENDING").length;
     const success = orders.filter((o) => o.status === "SUCCESS").length;
+    const pending = orders.filter((o) => o.status === "PENDING").length;
     const failed = orders.filter((o) => o.status === "FAILED").length;
-    return { pending, success, failed };
+    return { success, pending, failed };
   }, [orders]);
 
   const hasFilters =
     search !== "" ||
     status !== "ALL" ||
     minAmount !== "" ||
-    maxAmount !== "";
+    maxAmount !== "" ||
+    customer !== "" ||
+    product !== "";
 
-  // Pagination range
   const rangeStart = orders.length === 0 ? 0 : page * 20 + 1;
   const rangeEnd = page * 20 + orders.length;
 
@@ -137,6 +162,8 @@ export default function AdminOrders() {
     setDraftStatus(status);
     setDraftMinAmount(minAmount);
     setDraftMaxAmount(maxAmount);
+    setDraftCustomer(customer);
+    setDraftProduct(product);
     setFilterOpen(true);
   };
 
@@ -145,6 +172,8 @@ export default function AdminOrders() {
     setStatus(draftStatus);
     setMinAmount(draftMinAmount);
     setMaxAmount(draftMaxAmount);
+    setCustomer(draftCustomer);
+    setProduct(draftProduct);
     setPage(0);
     setFilterOpen(false);
     setToast("Filter applied");
@@ -155,10 +184,14 @@ export default function AdminOrders() {
     setDraftStatus("ALL");
     setDraftMinAmount("");
     setDraftMaxAmount("");
+    setDraftCustomer("");
+    setDraftProduct("");
     setSearch("");
     setStatus("ALL");
     setMinAmount("");
     setMaxAmount("");
+    setCustomer("");
+    setProduct("");
     setPage(0);
     setFilterOpen(false);
     setToast("Filter cleared");
@@ -215,7 +248,7 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-5">
-      {/* ============ HEADER ============ */}
+      {/* HEADER */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-navy">Orders</h1>
@@ -229,11 +262,10 @@ export default function AdminOrders() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
                   ? "border-brand/40 bg-brand/5 text-brand"
                   : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -245,7 +277,7 @@ export default function AdminOrders() {
             </button>
 
             {filterOpen && (
-              <div className="absolute right-0 mt-2 w-[520px] max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
+              <div className="absolute right-0 mt-2 w-[560px] max-w-[92vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
                 <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
                   <span className="text-xs font-bold text-navy uppercase tracking-wider">
                     Filters
@@ -259,18 +291,21 @@ export default function AdminOrders() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Search */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Search
+                      Search (order id, email, name)
                     </label>
                     <input
                       type="text"
                       value={draftSearch}
                       onChange={(e) => setDraftSearch(e.target.value)}
-                      placeholder="Order #, email, name..."
+                      placeholder="SU-2026..."
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
+
+                  {/* Status */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Status
@@ -288,6 +323,36 @@ export default function AdminOrders() {
                       <option value="FAILED">Failed</option>
                     </select>
                   </div>
+
+                  {/* 🆕 Customer name / email */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Customer (name or email)
+                    </label>
+                    <input
+                      type="text"
+                      value={draftCustomer}
+                      onChange={(e) => setDraftCustomer(e.target.value)}
+                      placeholder="John / john@example.com"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+
+                  {/* 🆕 Product name */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Product name
+                    </label>
+                    <input
+                      type="text"
+                      value={draftProduct}
+                      onChange={(e) => setDraftProduct(e.target.value)}
+                      placeholder="Windows 11"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+
+                  {/* Amount Min */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Amount Min (₹)
@@ -300,6 +365,8 @@ export default function AdminOrders() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
+
+                  {/* Amount Max */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Amount Max (₹)
@@ -360,7 +427,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* ============ STATS CARDS ============ */}
+      {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center justify-between mb-3">
@@ -393,14 +460,14 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* ============ LOADING ============ */}
+      {/* LOADING */}
       {isLoading && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
-      {/* ============ ERROR ============ */}
+      {/* ERROR */}
       {isError && (
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
           <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
@@ -414,7 +481,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* ============ EMPTY ============ */}
+      {/* EMPTY */}
       {!isLoading && !isError && orders.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
@@ -431,7 +498,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* ============ TABLE ============ */}
+      {/* TABLE */}
       {!isLoading && !isError && orders.length > 0 && (
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -439,7 +506,7 @@ export default function AdminOrders() {
               <table className="w-full min-w-[1100px] text-sm">
                 <thead>
                   <tr className="bg-soft text-left text-[11px] uppercase tracking-wider text-muted font-semibold">
-                    <th className="px-4 py-3">Order #</th>
+                    <th className="px-4 py-3">Order ID</th>
                     <th className="px-4 py-3">Customer</th>
                     <th className="px-4 py-3">Product</th>
                     <th className="px-4 py-3">Items</th>
@@ -525,7 +592,7 @@ export default function AdminOrders() {
         </Reveal>
       )}
 
-      {/* ============ PAGINATION (Astro style) ============ */}
+      {/* PAGINATION */}
       {!isLoading && !isError && orders.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
@@ -557,7 +624,7 @@ export default function AdminOrders() {
         </div>
       )}
 
-      {/* ============ VIEW MODAL ============ */}
+      {/* VIEW MODAL */}
       <Modal
         open={!!selected}
         onClose={() => setSelected(null)}
@@ -665,7 +732,7 @@ export default function AdminOrders() {
         )}
       </Modal>
 
-      {/* ============ CONFIRM DIALOG (Astro style) ============ */}
+      {/* CONFIRM DIALOG */}
       {createPortal(
         <AnimatePresence>
           {confirmState.open && confirmState.order && (
@@ -710,11 +777,10 @@ export default function AdminOrders() {
                   <button
                     onClick={handleStatusConfirm}
                     disabled={updateStatus.isPending}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${
-                      confirmState.newStatus === "FAILED"
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.newStatus === "FAILED"
                         ? "bg-red-600 hover:bg-red-700"
                         : "bg-brand hover:bg-brand-dark"
-                    }`}
+                      }`}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -730,7 +796,7 @@ export default function AdminOrders() {
         document.body
       )}
 
-      {/* ============ TOAST ============ */}
+      {/* TOAST */}
       {createPortal(
         <AnimatePresence>
           {toast && (
