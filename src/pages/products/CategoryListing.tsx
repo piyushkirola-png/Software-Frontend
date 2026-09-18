@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Loader2, PackageX } from "lucide-react";
+import { Loader2, PackageX, ChevronRight } from "lucide-react";
 import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
 import ProductFilters, { FilterState } from "../../components/product/ProductFilters";
+import Reveal from "../../components/animations/Reveal";
 import { useProductsByCategory } from "../../api/queries/useProducts";
 import { useCategory } from "../../api/queries/useCategories";
 import { Product } from "../../types/product";
@@ -14,7 +15,12 @@ export default function CategoryListing() {
   const [variantProduct, setVariantProduct] = useState<Product | null>(null);
 
   const { data: category } = useCategory(slug);
-  const { data, isLoading, error } = useProductsByCategory(slug, 0, 12, filters.sortBy);
+  const { data, isLoading, error } = useProductsByCategory(
+    slug,
+    0,
+    12,
+    filters.sortBy,
+  );
 
   const products = data?.content || [];
   const totalElements = data?.totalElements || 0;
@@ -43,14 +49,16 @@ export default function CategoryListing() {
       {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="text-xs text-muted mb-2">
-            <Link to="/" className="hover:text-brand">Home</Link>
-            <span className="mx-1">/</span>
+          <div className="flex items-center gap-1.5 text-xs text-muted mb-2">
+            <Link to="/" className="hover:text-brand transition">
+              Home
+            </Link>
+            <ChevronRight size={12} />
             <span className="text-navy font-semibold">
               {category?.name || slug}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-navy">
+          <h1 className="text-2xl md:text-3xl font-bold text-navy">
             {category?.name || "Category"}
           </h1>
           {category?.description && (
@@ -60,7 +68,7 @@ export default function CategoryListing() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-[280px_1fr] gap-6">
-        <aside>
+        <aside className="lg:sticky lg:top-24 h-fit">
           <ProductFilters
             filters={filters}
             onChange={setFilters}
@@ -70,34 +78,45 @@ export default function CategoryListing() {
 
         <div>
           {isLoading && (
-            <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 text-brand animate-spin" />
+            <div className="bg-white rounded-2xl border border-gray-100 p-20 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 text-brand animate-spin" />
             </div>
           )}
 
           {error && (
-            <div className="text-center py-20 text-red-500 text-sm">
-              Failed to load products.
+            <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
+              <p className="text-sm text-danger font-semibold">
+                Failed to load products.
+              </p>
             </div>
           )}
 
           {!isLoading && !error && products.length === 0 && (
-            <div className="text-center py-20 text-muted">
-              <PackageX className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p className="font-semibold">No products in this category</p>
+            <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
+              <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
+                <PackageX className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-base font-bold text-navy">
+                No products in this category
+              </p>
+              <p className="text-sm text-muted mt-1">
+                Check back soon for new arrivals.
+              </p>
             </div>
           )}
 
           {!isLoading && products.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {products.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={toCardType(p)}
-                  onSelectVariant={() => setVariantProduct(p)}
-                />
-              ))}
-            </div>
+            <Reveal>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {products.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={toCardType(p)}
+                    onSelectVariant={() => setVariantProduct(p)}
+                  />
+                ))}
+              </div>
+            </Reveal>
           )}
         </div>
       </div>

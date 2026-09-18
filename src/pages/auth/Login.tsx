@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthContext } from "../../lib/AuthContext";
@@ -21,23 +22,28 @@ export default function Login() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      toast.error("Email and password are required");
+      toast.error("Email and password are required", { duration: 3000 });
       return;
     }
     setLoading(true);
-    const t = toast.loading("Signing in…");
+    const t = toast.loading("Signing in…", { duration: 3000 });
     try {
       const res = await login({ email, password });
-      toast.success("Logged in successfully!", { id: t });
+      toast.success("Logged in successfully!", {
+        id: t,
+        duration: 2500,
+      });
 
       const target =
         redirectTo ||
         (res.role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard");
 
-      nav(target, { replace: true });
+      // Small delay so the success toast is visible before navigation
+      setTimeout(() => {
+        nav(target, { replace: true });
+      }, 700);
     } catch (err) {
-      toast.error(getErrorMessage(err), { id: t });
-    } finally {
+      toast.error(getErrorMessage(err), { id: t, duration: 3000 });
       setLoading(false);
     }
   };
@@ -45,7 +51,12 @@ export default function Login() {
   return (
     <div className="bg-soft min-h-[70vh] py-14">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-md"
+        >
           <h1 className="text-3xl md:text-4xl font-extrabold text-navy">
             My account
           </h1>
@@ -56,7 +67,8 @@ export default function Login() {
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-bold text-navy mb-1.5">
-                Username or email address <span className="text-red-500">*</span>
+                Username or email address{" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -131,7 +143,7 @@ export default function Login() {
               Create account
             </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

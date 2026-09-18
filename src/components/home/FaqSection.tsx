@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Minus, HelpCircle } from "lucide-react";
+import Reveal from "../animations/Reveal";
 
 const faqs = [
   { q: "How are product keys handled?", a: "All license keys are sourced from authorized distributors and delivered instantly via email after payment." },
@@ -15,42 +17,88 @@ const faqs = [
 ];
 
 export default function FaqSection() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(0);
+
+  const toggle = (i: number) => {
+    setOpen((prev) => (prev === i ? null : i));
+  };
 
   return (
-    <section className="w-full bg-white py-16">
+    <section className="bg-white py-16 md:py-20">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-navy">Frequently Asked Questions</h2>
-          <p className="text-muted mt-3 text-sm">Find answers to common questions about our products and services.</p>
-        </div>
+        <Reveal>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-brand/10 text-brand text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+              <HelpCircle size={12} /> HELP CENTER
+            </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-navy">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted mt-3 text-sm md:text-base">
+              Find answers to common questions about our products and services.
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {faqs.map((f, i) => {
-            const isOpen = open === i;
-            return (
-              <div
-                key={i}
-                className={`bg-navy rounded-xl overflow-hidden transition-all ${isOpen ? "shadow-cardHover" : ""}`}
-              >
-                <button
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+        <Reveal delay={100}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+            {faqs.map((f, i) => {
+              const isOpen = open === i;
+              return (
+                <motion.div
+                  key={i}
+                  layout
+                  transition={{
+                    layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+                  }}
+                  className={`rounded-2xl overflow-hidden border transition-colors duration-300 ${
+                    isOpen
+                      ? "bg-navy border-brand shadow-cardHover"
+                      : "bg-navy border-navy hover:border-brand/40"
+                  }`}
                 >
-                  <span className="font-semibold text-white text-sm">{f.q}</span>
-                  <span className="shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">
-                    {isOpen ? <Minus size={16} /> : <Plus size={16} />}
-                  </span>
-                </button>
-                {isOpen && (
-                  <div className="px-5 pb-4 text-sm text-gray-300 leading-relaxed border-t border-white/10 pt-3">
-                    {f.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  <button
+                    onClick={() => toggle(i)}
+                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left group"
+                  >
+                    <span className="font-semibold text-sm text-white">
+                      {f.q}
+                    </span>
+                    <span
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        isOpen
+                          ? "bg-brand text-white rotate-180"
+                          : "bg-white/10 text-white group-hover:bg-white/20"
+                      }`}
+                    >
+                      {isOpen ? <Minus size={16} /> : <Plus size={16} />}
+                    </span>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        key="content"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-4 text-sm text-gray-300 leading-relaxed border-t border-white/10 pt-3">
+                          {f.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+        </Reveal>
       </div>
     </section>
   );

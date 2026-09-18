@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./lib/AuthContext";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import ScrollToTop from "./components/layout/ScrollToTop";
@@ -16,7 +17,7 @@ import Cart from "./pages/cart/Cart";
 import Checkout from "./pages/checkout/Checkout";
 import OrderSuccess from "./pages/checkout/OrderSuccess";
 
-// Public layout + static pages
+// Public layout
 import PublicLayout from "./components/layout/PublicLayout";
 import About from "./pages/legal/About";
 import Terms from "./pages/legal/Terms";
@@ -46,8 +47,8 @@ import AdminOrders from "./pages/admin/orders/Orders";
 import AdminKeys from "./pages/admin/keys/Keys";
 import AdminUsers from "./pages/admin/users/Users";
 import AdminReviews from "./pages/admin/reviews/Reviews";
-import AdminReports from "./pages/admin/reports/Reports";
-import AdminSettings from "./pages/admin/settings/Settings";
+import AdminPayments from "./pages/admin/payments/Payments";
+import AdminProfile from "./pages/admin/profile/Profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,8 +66,34 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <ScrollToTop />
+          <Toaster
+            position="bottom-right"
+            containerStyle={{
+              bottom: 24,
+              right: 24,
+              zIndex: 99999,
+            }}
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: "#0B1F3A",
+                color: "#fff",
+                fontSize: "14px",
+                fontWeight: 600,
+                padding: "12px 16px",
+                borderRadius: "12px",
+                boxShadow: "0 10px 30px rgba(11,31,58,0.25)",
+              },
+              success: {
+                iconTheme: { primary: "#10B981", secondary: "#fff" },
+              },
+              error: {
+                iconTheme: { primary: "#EF4444", secondary: "#fff" },
+              },
+            }}
+          />
           <Routes>
-            {/* Standalone pages (own layout) */}
+            {/* Standalone pages */}
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<ProductListing />} />
             <Route path="/products/category/:slug" element={<CategoryListing />} />
@@ -75,7 +102,7 @@ export default function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/checkout/success/:orderNumber" element={<OrderSuccess />} />
 
-            {/* Public pages (Header + Footer) */}
+            {/* Public */}
             <Route element={<PublicLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
@@ -88,7 +115,7 @@ export default function App() {
               <Route path="/contact-us" element={<Contact />} />
             </Route>
 
-            {/* User account — own shell, no public Header/Footer */}
+            {/* User */}
             <Route
               path="/user"
               element={
@@ -108,7 +135,7 @@ export default function App() {
               <Route path="password" element={<UpdatePassword />} />
             </Route>
 
-            {/* Admin — own shell, no public Header/Footer */}
+            {/* Admin */}
             <Route
               path="/admin"
               element={
@@ -126,8 +153,8 @@ export default function App() {
               <Route path="keys" element={<AdminKeys />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="reviews" element={<AdminReviews />} />
-              <Route path="reports" element={<AdminReports />} />
-              <Route path="settings" element={<AdminSettings />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="profile" element={<AdminProfile />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

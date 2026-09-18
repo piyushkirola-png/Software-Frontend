@@ -1,10 +1,18 @@
+import { Shield } from "lucide-react";
+import PageHero from "../../components/ui/PageHero";
+import Reveal from "../../components/animations/Reveal";
+
 export default function Privacy() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-extrabold text-navy mb-2">Privacy Policy</h1>
-      <p className="text-sm text-muted mb-8">Last updated: January 2026</p>
+    <>
+      <PageHero
+        badge="Privacy"
+        icon={<Shield size={20} className="text-white" />}
+        title="Privacy Policy"
+        subtitle="Last updated: January 2026"
+      />
 
-      <div className="space-y-6 text-sm text-muted leading-relaxed">
+      <section className="max-w-4xl mx-auto px-4 py-12 space-y-6">
         <Section title="Information We Collect">
           <p>
             We collect personal information you provide when you register,
@@ -51,22 +59,33 @@ export default function Privacy() {
           <p>
             You have the right to access, correct, or delete your personal
             information. Contact us at{" "}
-            <a href="mailto:support@softwareuniverse.in" className="text-brand hover:underline">
-              support@softwareuniverse.in
+            <a
+              href="mailto:support@softora.in"
+              className="text-brand hover:underline font-semibold"
+            >
+              support@softora.in
             </a>{" "}
             to exercise these rights.
           </p>
         </Section>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section>
-      <h2 className="text-lg font-bold text-navy mb-2">{title}</h2>
-      {children}
-    </section>
+    <Reveal>
+      <section className="bg-white rounded-2xl border border-gray-100 p-6">
+        <h2 className="text-lg font-bold text-navy mb-3">{title}</h2>
+        <div className="text-sm text-muted leading-relaxed">{children}</div>
+      </section>
+    </Reveal>
   );
 }

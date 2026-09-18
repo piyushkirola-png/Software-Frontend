@@ -1,14 +1,28 @@
-import { useState } from "react";
-import { Upload, Trash2, Ban, Key, Loader2, Plus } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Upload,
+  Trash2,
+  Ban,
+  Key,
+  Loader2,
+  Plus,
+  AlertCircle,
+  Filter,
+  RefreshCw,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+} from "lucide-react";
 import Modal from "../../../components/ui/Modal";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Badge from "../../../components/ui/Badge";
-import ConfirmDialog from "../../../components/ui/ConfirmDialog";
-import { notify } from "../../../components/ui/toast";
+import Reveal from "../../../components/animations/Reveal";
 import {
   useAdminKeys,
-  useAdminKeyStock,
   useAdminProducts,
 } from "../../../api/queries/useAdmin";
 import {
@@ -26,8 +40,18 @@ export default function AdminKeys() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
-  const { data, isLoading } = useAdminKeys(page, 50, status || undefined, productId);
-  const { data: stock = [] } = useAdminKeyStock();
+  // Filter popover
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [draftStatus, setDraftStatus] = useState("");
+  const [draftProductId, setDraftProductId] = useState<number | undefined>();
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const { data, isLoading, refetch, isRefetching } = useAdminKeys(
+    page,
+    50,
+    status || undefined,
+    productId,
+  );
   const { data: productsData } = useAdminProducts(0, 100);
 
   const addKey = useAddKey();
@@ -50,15 +74,79 @@ export default function AdminKeys() {
 
   const [confirmState, setConfirmState] = useState<{
     open: boolean;
-    title: string;
-    message: string;
-    danger?: boolean;
-    action?: () => Promise<void> | void;
-  }>({ open: false, title: "", message: "" });
+    key: any | null;
+    actionType: "revoke" | "delete";
+  }>({ open: false, key: null, actionType: "revoke" });
+
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  // Close filter on outside click / ESC
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+        setDraftStatus(status);
+        setDraftProductId(productId);
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFilterOpen(false);
+        setDraftStatus(status);
+        setDraftProductId(productId);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [filterOpen, status, productId]);
 
   const products = productsData?.content || [];
   const keys = data?.content || [];
   const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || 0;
+
+  const hasFilters = status !== "" || productId !== undefined;
+
+  const openFilter = () => {
+    setDraftStatus(status);
+    setDraftProductId(productId);
+    setFilterOpen(true);
+  };
+
+  const applyFilter = () => {
+    setStatus(draftStatus);
+    setProductId(draftProductId);
+    setPage(0);
+    setFilterOpen(false);
+    setToast("Filter applied");
+  };
+
+  const clearFilter = () => {
+    setDraftStatus("");
+    setDraftProductId(undefined);
+    setStatus("");
+    setProductId(undefined);
+    setPage(0);
+    setFilterOpen(false);
+    setToast("Filter cleared");
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
+    setToast("Refreshed successfully");
+  };
 
   const handleUpload = async () => {
     setUploadError("");
@@ -73,11 +161,11 @@ export default function AdminKeys() {
         batchName: uploadBatch || undefined,
       });
       setUploadResult(result);
-      notify.success(`Uploaded ${result.inserted} key(s)`);
+      setToast(`Uploaded ${result.inserted} key(s)`);
     } catch (e) {
       const msg = getErrorMessage(e);
       setUploadError(msg);
-      notify.error(msg);
+      setToast(msg);
     }
   };
 
@@ -98,239 +186,308 @@ export default function AdminKeys() {
       setSingleBatch("");
       setSingleProductId(0);
       setSingleVariantId(undefined);
-      notify.success("License key added");
+      setToast("License key added");
     } catch (e) {
       const msg = getErrorMessage(e);
       setAddError(msg);
-      notify.error(msg);
+      setToast(msg);
     }
   };
 
-  const handleRevoke = (id: number) => {
-    setConfirmState({
-      open: true,
-      title: "Revoke key?",
-      message: "The key will no longer be sellable.",
-      danger: true,
-      action: async () => {
-        try {
-          await revoke.mutateAsync(id);
-          notify.success("Key revoked");
-        } catch (e) {
-          notify.error(getErrorMessage(e));
-        }
-      },
-    });
+  const confirmRevoke = (k: any) => {
+    setConfirmState({ open: true, key: k, actionType: "revoke" });
   };
 
-  const handleDelete = (id: number) => {
-    setConfirmState({
-      open: true,
-      title: "Delete key?",
-      message: "This action cannot be undone.",
-      danger: true,
-      action: async () => {
-        try {
-          await del.mutateAsync(id);
-          notify.success("Key deleted");
-        } catch (e) {
-          notify.error(getErrorMessage(e));
-        }
-      },
-    });
+  const confirmDelete = (k: any) => {
+    setConfirmState({ open: true, key: k, actionType: "delete" });
   };
+
+  const handleConfirmAction = async () => {
+    if (!confirmState.key) return;
+    try {
+      if (confirmState.actionType === "revoke") {
+        await revoke.mutateAsync(confirmState.key.id);
+        setToast("Key revoked");
+      } else {
+        await del.mutateAsync(confirmState.key.id);
+        setToast("Key deleted");
+      }
+      setConfirmState({ open: false, key: null, actionType: "revoke" });
+    } catch (e) {
+      setToast(getErrorMessage(e));
+      setConfirmState({ open: false, key: null, actionType: "revoke" });
+    }
+  };
+
+  const confirmPending = revoke.isPending || del.isPending;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* ============ HEADER ============ */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-navy">
+          <h1 className="text-2xl lg:text-3xl font-bold text-navy">
             License Keys
           </h1>
-          <p className="text-sm text-muted mt-1">
-            {data?.totalElements || 0} keys
+          <p className="text-muted mt-1 text-sm">
+            Manage your software license keys inventory
           </p>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter popover */}
+          <div ref={filterRef} className="relative">
+            <button
+              onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
+                }`}
+            >
+              <Filter className="h-4 w-4" />
+              Filter
+              {hasFilters && (
+                <span className="ml-0.5 h-4 w-4 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center">
+                  !
+                </span>
+              )}
+            </button>
+
+            {filterOpen && (
+              <div className="absolute right-0 mt-2 w-[420px] max-w-[90vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                  <span className="text-xs font-bold text-navy uppercase tracking-wider">
+                    Filters
+                  </span>
+                  <button
+                    onClick={() => setFilterOpen(false)}
+                    className="p-1 rounded hover:bg-gray-100 text-muted"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={draftStatus}
+                      onChange={(e) => setDraftStatus(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="">All</option>
+                      <option value="AVAILABLE">Available</option>
+                      <option value="RESERVED">Reserved</option>
+                      <option value="SOLD">Sold</option>
+                      <option value="REVOKED">Revoked</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Product
+                    </label>
+                    <select
+                      value={draftProductId ?? ""}
+                      onChange={(e) =>
+                        setDraftProductId(
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="">All</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={clearFilter}
+                    className="flex-1 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 transition"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={applyFilter}
+                    className="flex-1 rounded-lg px-3 py-2 bg-brand text-white text-xs font-semibold hover:bg-brand-dark transition"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Refresh */}
+          <button
+            onClick={handleRefresh}
+            disabled={isRefetching}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 disabled:opacity-60 transition"
+            title="Refresh"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            />
+          </button>
+
+          {/* Add One */}
           <Button onClick={() => setAddOpen(true)} variant="outline">
             <Plus size={16} /> Add One
           </Button>
+
+          {/* Bulk Upload */}
           <Button onClick={() => setUploadOpen(true)}>
             <Upload size={16} /> Bulk Upload
           </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 p-5">
-        <h2 className="font-bold text-navy mb-4 flex items-center gap-2">
-          <Key size={16} /> Stock Summary
-        </h2>
-        {stock.length === 0 ? (
-          <p className="text-sm text-muted">No products yet</p>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
-            {stock.map((s, i) => (
-              <div
-                key={i}
-                className="border border-gray-100 rounded-lg p-3 text-xs"
-              >
-                <div className="font-semibold text-navy line-clamp-1">
-                  {s.productTitle}
-                </div>
-                {s.variantName && (
-                  <div className="text-[10px] text-muted mb-1">
-                    {s.variantName}
-                  </div>
-                )}
-                <div className="flex gap-3 mt-2">
-                  <span className="text-success font-bold">{s.available}</span>
-                  <span className="text-yellow-600">{s.reserved}</span>
-                  <span className="text-brand">{s.sold}</span>
-                  <span className="text-red-500">{s.revoked}</span>
-                </div>
-                <div className="text-[10px] text-muted mt-1">
-                  Available / Reserved / Sold / Revoked
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-wrap gap-3">
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(0);
-          }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="AVAILABLE">Available</option>
-          <option value="RESERVED">Reserved</option>
-          <option value="SOLD">Sold</option>
-          <option value="REVOKED">Revoked</option>
-        </select>
-        <select
-          value={productId || ""}
-          onChange={(e) => {
-            setProductId(e.target.value ? Number(e.target.value) : undefined);
-            setPage(0);
-          }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
-        >
-          <option value="">All Products</option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-6 h-6 text-brand animate-spin" />
-          </div>
-        ) : keys.length === 0 ? (
-          <div className="text-center py-16 text-muted">
-            <Key className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="font-semibold">No keys yet</p>
-            <p className="text-sm mt-1">Upload keys to start selling</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-soft">
-                <tr className="text-left text-xs text-muted uppercase">
-                  <th className="px-4 py-3">Key</th>
-                  <th className="px-4 py-3">Product</th>
-                  <th className="px-4 py-3">Variant</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {keys.map((k) => (
-                  <tr key={k.id} className="border-t border-gray-100 hover:bg-soft">
-                    <td className="px-4 py-3 font-mono text-[11px] text-navy max-w-[200px] truncate">
-                      {k.licenseKey}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-navy line-clamp-1">
-                      {k.productTitle}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted">
-                      {k.variantName || "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        color={
-                          k.status === "AVAILABLE"
-                            ? "green"
-                            : k.status === "RESERVED"
-                            ? "yellow"
-                            : k.status === "SOLD"
-                            ? "blue"
-                            : "red"
-                        }
-                      >
-                        {k.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        {k.status !== "SOLD" && k.status !== "REVOKED" && (
-                          <button
-                            onClick={() => handleRevoke(k.id)}
-                            className="w-8 h-8 rounded hover:bg-yellow-50 text-yellow-600 flex items-center justify-center"
-                            title="Revoke"
-                          >
-                            <Ban size={14} />
-                          </button>
-                        )}
-                        {k.status !== "SOLD" && (
-                          <button
-                            onClick={() => handleDelete(k.id)}
-                            className="w-8 h-8 rounded hover:bg-red-50 text-red-500 flex items-center justify-center"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-40"
-          >
-            ←
-          </button>
-          <span className="text-sm text-muted">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-40"
-          >
-            →
-          </button>
+      {/* ============ LOADING ============ */}
+      {isLoading && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
+      {/* ============ EMPTY ============ */}
+      {!isLoading && keys.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
+            <Key className="h-7 w-7 text-white" />
+          </div>
+          <h2 className="text-base font-bold text-navy mb-1">
+            {hasFilters ? "No matching keys" : "No keys yet"}
+          </h2>
+          <p className="text-sm text-muted">
+            {hasFilters
+              ? "Try clearing filters."
+              : "Upload keys to start selling."}
+          </p>
+        </div>
+      )}
+
+      {/* ============ TABLE ============ */}
+      {!isLoading && keys.length > 0 && (
+        <Reveal>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="bg-soft text-left text-[11px] uppercase tracking-wider text-muted font-semibold">
+                    <th className="px-4 py-3">Key</th>
+                    <th className="px-4 py-3">Product</th>
+                    <th className="px-4 py-3">Variant</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {keys.map((k) => (
+                    <tr
+                      key={k.id}
+                      className="border-t border-gray-100 hover:bg-soft/50 transition"
+                    >
+                      <td className="px-4 py-3 font-mono text-[11px] text-navy max-w-[200px] truncate">
+                        {k.licenseKey}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-navy line-clamp-1">
+                        {k.productTitle}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted">
+                        {k.variantName || "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          color={
+                            k.status === "AVAILABLE"
+                              ? "green"
+                              : k.status === "RESERVED"
+                                ? "yellow"
+                                : k.status === "SOLD"
+                                  ? "blue"
+                                  : "red"
+                          }
+                        >
+                          {k.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center gap-1">
+                          {k.status !== "SOLD" && k.status !== "REVOKED" && (
+                            <button
+                              onClick={() => confirmRevoke(k)}
+                              className="w-8 h-8 rounded-lg hover:bg-yellow-50 text-yellow-600 flex items-center justify-center"
+                              title="Revoke"
+                            >
+                              <Ban size={14} />
+                            </button>
+                          )}
+                          {k.status !== "SOLD" && (
+                            <button
+                              onClick={() => confirmDelete(k)}
+                              className="w-8 h-8 rounded-lg hover:bg-red-50 text-red-600 flex items-center justify-center"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* ============ PAGINATION ============ */}
+      {!isLoading && keys.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
+          <div className="text-xs text-muted">
+            Showing{" "}
+            <span className="font-semibold text-navy">
+              {page * 50 + 1}
+            </span>
+            {" – "}
+            <span className="font-semibold text-navy">
+              {page * 50 + keys.length}
+            </span>{" "}
+            of <span className="font-semibold text-navy">{totalElements}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-xs font-semibold text-navy px-2">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============ BULK UPLOAD MODAL ============ */}
       <Modal
         open={uploadOpen}
         onClose={() => {
@@ -339,113 +496,167 @@ export default function AdminKeys() {
           setUploadError("");
           setUploadFile(null);
         }}
-        title="Bulk Upload License Keys"
-      >
-        {uploadResult ? (
-          <div className="space-y-3">
-            <div className="bg-success/10 border border-success/30 rounded-lg p-4 text-sm">
-              <div className="font-bold text-success mb-2">Upload Complete</div>
-              <div className="space-y-1 text-xs">
-                <div>Total rows: <b>{uploadResult.totalRows}</b></div>
-                <div>Inserted: <b className="text-success">{uploadResult.inserted}</b></div>
-                <div>Skipped: <b className="text-yellow-600">{uploadResult.skipped}</b></div>
-              </div>
-            </div>
-            {uploadResult.errors?.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-h-40 overflow-y-auto">
-                <div className="text-xs font-bold text-red-600 mb-1">Errors:</div>
-                {uploadResult.errors.map((e: string, i: number) => (
-                  <div key={i} className="text-[11px] text-red-500">
-                    {e}
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              fullWidth
-              onClick={() => {
-                setUploadResult(null);
-                setUploadFile(null);
-              }}
-            >
-              Upload More
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-navy mb-1.5">
-                Product
-              </label>
-              <select
-                value={uploadProductId}
-                onChange={(e) => {
-                  setUploadProductId(Number(e.target.value));
-                  setUploadVariantId(undefined);
-                }}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm"
-              >
-                <option value={0}>— Select Product —</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Input
-              label="Batch Name (optional)"
-              value={uploadBatch}
-              onChange={(e) => setUploadBatch(e.target.value)}
-              placeholder="Feb2026"
-            />
-
-            <div>
-              <label className="block text-sm font-semibold text-navy mb-1.5">
-                CSV File
-              </label>
-              <input
-                type="file"
-                accept=".csv,.txt"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                className="w-full text-sm border border-gray-200 rounded-lg p-2"
-              />
-              <p className="text-[11px] text-muted mt-2">
-                Format: one license key per line. Header row is auto-skipped.
-              </p>
-            </div>
-
-            {uploadError && (
-              <p className="text-xs text-red-500">{uploadError}</p>
-            )}
-
-            <Button
-              fullWidth
-              onClick={handleUpload}
-              loading={bulkUpload.isPending}
-              disabled={!uploadFile || !uploadProductId}
-            >
-              Upload
-            </Button>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        title="Add Single License Key"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-navy mb-1.5">
+            <h3 className="text-lg font-bold text-navy">
+              Bulk Upload License Keys
+            </h3>
+            <p className="text-xs text-muted mt-0.5">
+              Upload a CSV file to add multiple keys at once
+            </p>
+          </div>
+
+          {uploadResult ? (
+            <>
+              <div className="bg-success/10 border border-success/30 rounded-xl p-4 text-sm">
+                <div className="font-bold text-success mb-2">
+                  Upload Complete
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div>
+                    Total rows: <b>{uploadResult.totalRows}</b>
+                  </div>
+                  <div>
+                    Inserted:{" "}
+                    <b className="text-success">{uploadResult.inserted}</b>
+                  </div>
+                  <div>
+                    Skipped:{" "}
+                    <b className="text-yellow-600">{uploadResult.skipped}</b>
+                  </div>
+                </div>
+              </div>
+              {uploadResult.errors?.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 max-h-40 overflow-y-auto">
+                  <div className="text-xs font-bold text-red-600 mb-1">
+                    Errors:
+                  </div>
+                  {uploadResult.errors.map((e: string, i: number) => (
+                    <div key={i} className="text-[11px] text-red-500">
+                      {e}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUploadOpen(false);
+                    setUploadResult(null);
+                    setUploadFile(null);
+                  }}
+                  className="w-full rounded-xl px-5 py-2.5 border border-gray-200 text-navy text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors"
+                >
+                  Close
+                </button>
+                <Button
+                  fullWidth
+                  onClick={() => {
+                    setUploadResult(null);
+                    setUploadFile(null);
+                  }}
+                >
+                  Upload More
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+                  Product
+                </label>
+                <select
+                  value={uploadProductId}
+                  onChange={(e) => {
+                    setUploadProductId(Number(e.target.value));
+                    setUploadVariantId(undefined);
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
+                >
+                  <option value={0}>— Select Product —</option>
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                label="Batch Name (optional)"
+                value={uploadBatch}
+                onChange={(e) => setUploadBatch(e.target.value)}
+                placeholder="Feb2026"
+              />
+
+              <div>
+                <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+                  CSV File
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm border border-gray-200 rounded-xl p-2"
+                />
+                <p className="text-[11px] text-muted mt-2">
+                  Format: one license key per line. Header row is auto-skipped.
+                </p>
+              </div>
+
+              {uploadError && (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">
+                  {uploadError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setUploadOpen(false)}
+                  disabled={bulkUpload.isPending}
+                  className="w-full rounded-xl px-5 py-2.5 border border-gray-200 text-navy text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <Button
+                  fullWidth
+                  onClick={handleUpload}
+                  loading={bulkUpload.isPending}
+                  disabled={!uploadFile || !uploadProductId}
+                >
+                  Upload
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+
+      {/* ============ ADD SINGLE MODAL ============ */}
+      <Modal open={addOpen} onClose={() => setAddOpen(false)}>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-navy">
+              Add Single License Key
+            </h3>
+            <p className="text-xs text-muted mt-0.5">
+              Add one key manually
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
               Product
             </label>
             <select
               value={singleProductId}
               onChange={(e) => setSingleProductId(Number(e.target.value))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
             >
               <option value={0}>— Select Product —</option>
               {products.map((p) => (
@@ -469,30 +680,115 @@ export default function AdminKeys() {
             onChange={(e) => setSingleBatch(e.target.value)}
           />
 
-          {addError && <p className="text-xs text-red-500">{addError}</p>}
+          {addError && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">
+              {addError}
+            </div>
+          )}
 
-          <Button
-            fullWidth
-            onClick={handleAddSingle}
-            loading={addKey.isPending}
-          >
-            Add Key
-          </Button>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setAddOpen(false)}
+              disabled={addKey.isPending}
+              className="w-full rounded-xl px-5 py-2.5 border border-gray-200 text-navy text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <Button fullWidth onClick={handleAddSingle} loading={addKey.isPending}>
+              Add Key
+            </Button>
+          </div>
         </div>
       </Modal>
 
-      <ConfirmDialog
-        open={confirmState.open}
-        title={confirmState.title}
-        message={confirmState.message}
-        danger={confirmState.danger}
-        onCancel={() => setConfirmState({ open: false, title: "", message: "" })}
-        onConfirm={async () => {
-          const action = confirmState.action;
-          setConfirmState({ open: false, title: "", message: "" });
-          await action?.();
-        }}
-      />
+      {/* ============ CONFIRM DIALOG (Astro style) ============ */}
+      {createPortal(
+        <AnimatePresence>
+          {confirmState.open && confirmState.key && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+              onClick={() =>
+                setConfirmState({ open: false, key: null, actionType: "revoke" })
+              }
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl"
+              >
+                <h3 className="text-sm font-bold text-navy mb-1">
+                  {confirmState.actionType === "revoke"
+                    ? "Revoke this key?"
+                    : "Delete this key?"}
+                </h3>
+                <p className="text-xs text-muted mb-5">
+                  {confirmState.actionType === "revoke"
+                    ? "The key will no longer be sellable."
+                    : "This action cannot be undone."}
+                </p>
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={() =>
+                      setConfirmState({
+                        open: false,
+                        key: null,
+                        actionType: "revoke",
+                      })
+                    }
+                    disabled={confirmPending}
+                    className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmAction}
+                    disabled={confirmPending}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.actionType === "revoke"
+                        ? "bg-yellow-600 hover:bg-yellow-700"
+                        : "bg-red-600 hover:bg-red-700"
+                      }`}
+                  >
+                    {confirmPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : confirmState.actionType === "revoke" ? (
+                      "Revoke"
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* ============ TOAST ============ */}
+      {createPortal(
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, x: 20 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, y: -20, x: 20 }}
+              className="fixed top-6 right-6 z-[9999] flex items-center gap-3 bg-white border border-success/20 shadow-xl rounded-lg px-3.5 py-2.5 max-w-xs"
+            >
+              <div className="p-1 rounded bg-success/10">
+                <CheckCircle className="h-3.5 w-3.5 text-success" />
+              </div>
+              <span className="text-xs font-medium text-navy">{toast}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

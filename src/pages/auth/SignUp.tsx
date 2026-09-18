@@ -30,7 +30,7 @@ export default function SignUp() {
     const t = toast.loading("Creating your account…");
     try {
       const res = await register({ name, email, password, phone: phone || undefined });
-      toast.success("Account created successfully! Welcome to Software Universe.", { id: t });
+      toast.success("Account created successfully! Welcome to Softora.", { id: t });
       const target =
         res.role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
       nav(target, { replace: true });

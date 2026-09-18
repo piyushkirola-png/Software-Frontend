@@ -1,15 +1,21 @@
+import { RotateCcw } from "lucide-react";
+import PageHero from "../../components/ui/PageHero";
+import Reveal from "../../components/animations/Reveal";
+
 export default function CancellationRefund() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-extrabold text-navy mb-2">
-        Cancellation & Refund Policy
-      </h1>
-      <p className="text-sm text-muted mb-8">Last updated: January 2026</p>
+    <>
+      <PageHero
+        badge="Refunds"
+        icon={<RotateCcw size={20} className="text-white" />}
+        title="Cancellation & Refund Policy"
+        subtitle="Last updated: January 2026"
+      />
 
-      <div className="space-y-6 text-sm text-muted leading-relaxed">
+      <section className="max-w-4xl mx-auto px-4 py-12 space-y-6">
         <Section title="Digital Product Policy">
           <p>
-            All products sold on Software Universe are digital license keys
+            All products sold on Softora are digital license keys
             delivered instantly via email. Because keys are non-returnable
             once revealed, our refund policy is limited to specific cases
             described below.
@@ -21,8 +27,12 @@ export default function CancellationRefund() {
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>The license key provided is invalid or non-functional</li>
             <li>The key has already been used/activated by another party</li>
-            <li>You received a wrong product different from what you ordered</li>
-            <li>We are unable to resolve your activation issue within 7 days</li>
+            <li>
+              You received a wrong product different from what you ordered
+            </li>
+            <li>
+              We are unable to resolve your activation issue within 7 days
+            </li>
           </ul>
         </Section>
 
@@ -38,8 +48,11 @@ export default function CancellationRefund() {
         <Section title="How to Request a Refund">
           <p>
             Email{" "}
-            <a href="mailto:support@softwareuniverse.in" className="text-brand hover:underline">
-              support@softwareuniverse.in
+            <a
+              href="mailto:support@softora.in"
+              className="text-brand hover:underline font-semibold"
+            >
+              support@softora.in
             </a>{" "}
             with your order number and a description of the issue. Our team
             will respond within 24 hours.
@@ -59,16 +72,24 @@ export default function CancellationRefund() {
             replacement is not available, a full refund is issued.
           </p>
         </Section>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section>
-      <h2 className="text-lg font-bold text-navy mb-2">{title}</h2>
-      {children}
-    </section>
+    <Reveal>
+      <section className="bg-white rounded-2xl border border-gray-100 p-6">
+        <h2 className="text-lg font-bold text-navy mb-3">{title}</h2>
+        <div className="text-sm text-muted leading-relaxed">{children}</div>
+      </section>
+    </Reveal>
   );
 }

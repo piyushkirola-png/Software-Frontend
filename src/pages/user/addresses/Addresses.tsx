@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react";
-import { Plus, MapPin, Pencil, Trash2, CheckCircle, Loader2 } from "lucide-react";
+import {
+  Plus,
+  MapPin,
+  Pencil,
+  Trash2,
+  CheckCircle,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import Modal from "../../../components/ui/Modal";
 import Button from "../../../components/ui/Button";
 import AddressForm from "../../../components/checkout/AddressForm";
 import ConfirmDialog from "../../../components/ui/ConfirmDialog";
-import { notify } from "../../../components/ui/toast";
+import Reveal from "../../../components/animations/Reveal";
+import { useAuthContext } from "../../../lib/AuthContext";
 import { addressService } from "../../../api/services/addressService";
 import { Address, AddressRequest } from "../../../types/address";
 import { getErrorMessage } from "../../../lib/api-client";
 
 export default function Addresses() {
+  const { showToast } = useAuthContext();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [saving, setSaving] = useState(false);
@@ -26,10 +37,12 @@ export default function Addresses() {
 
   const load = async () => {
     setLoading(true);
+    setError(false);
     try {
       setAddresses(await addressService.getAll());
     } catch (e) {
-      notify.error(getErrorMessage(e));
+      setError(true);
+      showToast(getErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -44,16 +57,16 @@ export default function Addresses() {
     try {
       if (editing) {
         await addressService.update(editing.id, data);
-        notify.success("Address updated");
+        showToast("Address updated");
       } else {
         await addressService.create(data);
-        notify.success("Address added");
+        showToast("Address added");
       }
       setShowForm(false);
       setEditing(null);
       await load();
     } catch (e) {
-      notify.error(getErrorMessage(e));
+      showToast(getErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -68,10 +81,10 @@ export default function Addresses() {
       action: async () => {
         try {
           await addressService.delete(id);
-          notify.success("Address deleted");
+          showToast("Address deleted");
           await load();
         } catch (e) {
-          notify.error(getErrorMessage(e));
+          showToast(getErrorMessage(e));
         }
       },
     });
@@ -80,96 +93,127 @@ export default function Addresses() {
   const setDefault = async (id: number) => {
     try {
       await addressService.setDefault(id);
-      notify.success("Default address updated");
+      showToast("Default address updated");
       await load();
     } catch (e) {
-      notify.error(getErrorMessage(e));
+      showToast(getErrorMessage(e));
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 md:p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-extrabold text-navy">My Addresses</h1>
-        <button
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-navy">
+            My Addresses
+          </h1>
+          <p className="text-muted mt-1 text-sm">
+            {addresses.length} address{addresses.length !== 1 ? "es" : ""}
+          </p>
+        </div>
+        <Button
           onClick={() => {
             setEditing(null);
             setShowForm(true);
           }}
-          className="flex items-center gap-1.5 bg-brand hover:bg-brand-dark text-white text-xs font-bold px-4 py-2 rounded-lg"
         >
-          <Plus size={14} /> Add Address
-        </button>
+          <Plus size={16} /> Add Address
+        </Button>
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 text-brand animate-spin" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
-      {!loading && addresses.length === 0 && (
-        <div className="text-center py-12 text-muted">
-          <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="font-semibold">No addresses yet</p>
-          <p className="text-sm mt-1">Add your first address to continue</p>
-        </div>
-      )}
-
-      <div className="grid md:grid-cols-2 gap-4">
-        {addresses.map((a) => (
-          <div
-            key={a.id}
-            className={`border rounded-lg p-4 ${
-              a.isDefault ? "border-success bg-success/5" : "border-gray-200"
-            }`}
+      {error && !loading && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
+          <p className="text-sm text-navy mb-3">Failed to load addresses</p>
+          <button
+            onClick={load}
+            className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
           >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="font-bold text-navy text-sm flex items-center gap-2">
-                {a.fullName}
-                {a.isDefault && (
-                  <span className="text-[10px] bg-success text-white px-2 py-0.5 rounded font-semibold">
-                    Default
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="text-xs text-muted mb-3">{a.phone}</div>
-            <div className="text-xs text-muted leading-relaxed mb-4">
-              {a.addressLine1}
-              {a.addressLine2 ? `, ${a.addressLine2}` : ""},<br />
-              {a.city}, {a.state} - {a.pincode}
-              <br />
-              {a.country}
-            </div>
-            <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-              <button
-                onClick={() => {
-                  setEditing(a);
-                  setShowForm(true);
-                }}
-                className="flex items-center gap-1 text-xs text-navy hover:text-brand font-semibold"
-              >
-                <Pencil size={12} /> Edit
-              </button>
-              {!a.isDefault && (
-                <button
-                  onClick={() => setDefault(a.id)}
-                  className="flex items-center gap-1 text-xs text-navy hover:text-success font-semibold"
-                >
-                  <CheckCircle size={12} /> Set Default
-                </button>
-              )}
-              <button
-                onClick={() => remove(a.id)}
-                className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold ml-auto"
-              >
-                <Trash2 size={12} /> Delete
-              </button>
-            </div>
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && addresses.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
+            <MapPin className="h-7 w-7 text-white" />
           </div>
-        ))}
-      </div>
+          <h2 className="text-base font-bold text-navy mb-1">
+            No addresses yet
+          </h2>
+          <p className="text-sm text-muted">
+            Add your first address to continue.
+          </p>
+        </div>
+      )}
+
+      {!loading && addresses.length > 0 && (
+        <Reveal>
+          <div className="grid md:grid-cols-2 gap-4">
+            {addresses.map((a) => (
+              <div
+                key={a.id}
+                className={`bg-white border-2 rounded-2xl p-4 transition ${
+                  a.isDefault
+                    ? "border-success/40 bg-success/5"
+                    : "border-gray-100 hover:border-brand/30"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="font-bold text-navy text-sm flex items-center gap-2 flex-wrap">
+                    {a.fullName}
+                    {a.isDefault && (
+                      <span className="text-[10px] bg-success text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-muted mb-3">{a.phone}</div>
+                <div className="text-xs text-muted leading-relaxed mb-4">
+                  {a.addressLine1}
+                  {a.addressLine2 ? `, ${a.addressLine2}` : ""},<br />
+                  {a.city}, {a.state} - {a.pincode}
+                  <br />
+                  {a.country}
+                </div>
+                <div className="flex flex-wrap gap-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => {
+                      setEditing(a);
+                      setShowForm(true);
+                    }}
+                    className="flex items-center gap-1 text-xs text-navy hover:text-brand font-semibold transition"
+                  >
+                    <Pencil size={12} /> Edit
+                  </button>
+                  {!a.isDefault && (
+                    <button
+                      onClick={() => setDefault(a.id)}
+                      className="flex items-center gap-1 text-xs text-navy hover:text-success font-semibold transition"
+                    >
+                      <CheckCircle size={12} /> Set Default
+                    </button>
+                  )}
+                  <button
+                    onClick={() => remove(a.id)}
+                    className="flex items-center gap-1 text-xs text-danger hover:text-red-700 font-semibold ml-auto transition"
+                  >
+                    <Trash2 size={12} /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       <Modal
         open={showForm}
@@ -178,6 +222,7 @@ export default function Addresses() {
           setEditing(null);
         }}
         title={editing ? "Edit Address" : "Add New Address"}
+        maxWidth="max-w-lg"
       >
         <AddressForm
           initial={editing}
@@ -195,7 +240,9 @@ export default function Addresses() {
         title={confirmState.title}
         message={confirmState.message}
         danger={confirmState.danger}
-        onCancel={() => setConfirmState({ open: false, title: "", message: "" })}
+        onCancel={() =>
+          setConfirmState({ open: false, title: "", message: "" })
+        }
         onConfirm={async () => {
           const action = confirmState.action;
           setConfirmState({ open: false, title: "", message: "" });

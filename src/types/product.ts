@@ -24,6 +24,7 @@ export interface Product {
   images?: string[];
   licenseType?: string | null;
   activationType?: string | null;
+  displayOrder?: number;
   hasVariants: boolean;
   stockQuantity?: number;
   isFeatured: boolean;

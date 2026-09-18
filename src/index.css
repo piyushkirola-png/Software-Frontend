@@ -20,3 +20,12 @@ button { cursor: pointer; font-family: inherit; }
   100% { transform: translateX(-50%); }
 }
 .animate-marquee { animation: marquee 25s linear infinite; }
+
+/* ✅ ADD THIS — for Modal scroll + Sidebar scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

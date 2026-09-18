@@ -1,14 +1,18 @@
+import { FileText } from "lucide-react";
+import PageHero from "../../components/ui/PageHero";
+import Reveal from "../../components/animations/Reveal";
+
 export default function Terms() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-extrabold text-navy mb-2">
-        Terms & Conditions
-      </h1>
-      <p className="text-sm text-muted mb-8">
-        Last updated: January 2026
-      </p>
+    <>
+      <PageHero
+        badge="Terms"
+        icon={<FileText size={20} className="text-white" />}
+        title="Terms & Conditions"
+        subtitle="Last updated: January 2026"
+      />
 
-      <div className="space-y-6 text-sm text-muted leading-relaxed">
+      <section className="max-w-4xl mx-auto px-4 py-12 space-y-6">
         <Section title="1. General Information">
           <p>
             The content on this website is provided for your general
@@ -51,7 +55,7 @@ export default function Terms() {
         <Section title="5. Trademarks">
           <p>
             All trademarks reproduced on this website which are not the
-            property of, or licensed to, Software Universe are acknowledged.
+            property of, or licensed to, Softora are acknowledged.
           </p>
         </Section>
 
@@ -83,22 +87,33 @@ export default function Terms() {
           <p>
             If you have any questions regarding these terms, please contact us
             at{" "}
-            <a href="mailto:support@softwareuniverse.in" className="text-brand hover:underline">
-              support@softwareuniverse.in
+            <a
+              href="mailto:support@softora.in"
+              className="text-brand hover:underline font-semibold"
+            >
+              support@softora.in
             </a>
             .
           </p>
         </Section>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section>
-      <h2 className="text-lg font-bold text-navy mb-2">{title}</h2>
-      {children}
-    </section>
+    <Reveal>
+      <section className="bg-white rounded-2xl border border-gray-100 p-6">
+        <h2 className="text-lg font-bold text-navy mb-3">{title}</h2>
+        <div className="text-sm text-muted leading-relaxed">{children}</div>
+      </section>
+    </Reveal>
   );
 }

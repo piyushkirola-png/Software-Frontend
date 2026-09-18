@@ -17,6 +17,9 @@ export default {
         success: "#10B981",
         muted: "#475569",
         soft: "#F8FAFC",
+        // ✅ ADDED — used by Badge + Button
+        warning: "#F59E0B",
+        danger: "#EF4444",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -24,6 +27,18 @@ export default {
       boxShadow: {
         card: "0 4px 20px rgba(15, 23, 42, 0.08)",
         cardHover: "0 8px 30px rgba(15, 23, 42, 0.15)",
+        // ✅ ADDED — used by Button (brand glow)
+        glow: "0 0 0 4px rgba(37, 99, 235, 0.15)",
+      },
+      // ✅ ADDED — used by marquee animation if needed
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        marquee: "marquee 30s linear infinite",
       },
     },
   },

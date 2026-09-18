@@ -1,5 +1,6 @@
 import AnnouncementBar from "../components/home/AnnouncementBar";
 import Header from "../components/layout/Header";
+import HeroSection from "../components/home/HeroSection";
 import FeaturedDeals from "../components/home/FeaturedDeals";
 import CategoryGrid from "../components/home/CategoryGrid";
 import WhyChooseUs from "../components/home/WhyChooseUs";
@@ -15,6 +16,7 @@ export default function Home() {
       <AnnouncementBar />
       <Header />
       <main>
+        <HeroSection />
         <FeaturedDeals />
         <CategoryGrid />
         <WhyChooseUs />

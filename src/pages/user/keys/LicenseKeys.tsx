@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Key, Copy, CheckCircle, Loader2 } from "lucide-react";
+import { Key, Copy, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import Reveal from "../../../components/animations/Reveal";
+import { useAuthContext } from "../../../lib/AuthContext";
 import { useMyOrders } from "../../../api/queries/useOrders";
 
 interface FlatKey {
@@ -14,7 +16,8 @@ interface FlatKey {
 }
 
 export default function LicenseKeys() {
-  const { data: orders = [], isLoading } = useMyOrders();
+  const { showToast } = useAuthContext();
+  const { data: orders = [], isLoading, isError, refetch } = useMyOrders();
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const flatKeys: FlatKey[] = orders
@@ -30,90 +33,123 @@ export default function LicenseKeys() {
           licenseKey: i.licenseKey!,
           orderNumber: o.orderNumber,
           soldAt: o.createdAt,
-        }))
+        })),
     );
 
   const copy = (text: string, id: number) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    showToast("License key copied");
     setTimeout(() => setCopiedId(null), 1500);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 text-brand animate-spin" />
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+        <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
+        <p className="text-sm text-navy mb-3">Failed to load license keys</p>
+        <button
+          onClick={() => refetch()}
+          className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 md:p-6">
-      <h1 className="text-2xl font-extrabold text-navy mb-6">My License Keys</h1>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl lg:text-3xl font-bold text-navy">
+          My License Keys
+        </h1>
+        <p className="text-muted mt-1 text-sm">
+          {flatKeys.length} key{flatKeys.length !== 1 ? "s" : ""}
+        </p>
+      </div>
 
       {flatKeys.length === 0 ? (
-        <div className="text-center py-16 text-muted">
-          <Key className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="font-semibold">No license keys yet</p>
-          <p className="text-sm mt-1">Purchase a product to receive your key</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
+            <Key className="h-7 w-7 text-white" />
+          </div>
+          <h2 className="text-base font-bold text-navy mb-1">
+            No license keys yet
+          </h2>
+          <p className="text-sm text-muted mb-4">
+            Purchase a product to receive your key.
+          </p>
           <Link
             to="/products"
-            className="text-brand text-sm mt-3 inline-block hover:underline"
+            className="inline-flex items-center gap-2 rounded-xl px-6 py-3 bg-brand hover:bg-brand-dark text-white text-sm font-semibold transition"
           >
-            Browse Products →
+            Browse Products
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {flatKeys.map((k) => (
-            <div
-              key={k.id}
-              className="border border-gray-100 rounded-lg p-4"
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="min-w-0">
-                  <Link
-                    to={`/product/${k.productSlug}`}
-                    className="font-semibold text-navy text-sm hover:text-brand line-clamp-2"
-                  >
-                    {k.productTitle}
-                  </Link>
-                  {k.variantName && (
-                    <div className="text-xs text-muted mt-0.5">{k.variantName}</div>
-                  )}
-                  <div className="text-[11px] text-muted mt-1">
-                    Order: {k.orderNumber}
-                    {k.soldAt && (
-                      <>
-                        {" • "}
-                        {new Date(k.soldAt).toLocaleDateString("en-IN")}
-                      </>
+        <Reveal>
+          <div className="space-y-3">
+            {flatKeys.map((k) => (
+              <div
+                key={k.id}
+                className="bg-white border border-gray-100 rounded-2xl p-4 hover:border-brand/20 transition"
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <Link
+                      to={`/product/${k.productSlug}`}
+                      className="font-semibold text-navy text-sm hover:text-brand line-clamp-2"
+                    >
+                      {k.productTitle}
+                    </Link>
+                    {k.variantName && (
+                      <div className="text-xs text-muted mt-0.5">
+                        {k.variantName}
+                      </div>
                     )}
+                    <div className="text-[11px] text-muted mt-1">
+                      Order: <span className="font-mono">{k.orderNumber}</span>
+                      {k.soldAt && (
+                        <>
+                          {" • "}
+                          {new Date(k.soldAt).toLocaleDateString("en-IN")}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+                <div className="bg-soft rounded-xl p-3 flex items-center justify-between gap-3">
+                  <code className="font-mono text-xs text-navy break-all">
+                    {k.licenseKey}
+                  </code>
+                  <button
+                    onClick={() => copy(k.licenseKey, k.id)}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs bg-brand hover:bg-brand-dark text-white px-3 py-2 rounded-lg font-semibold transition"
+                  >
+                    {copiedId === k.id ? (
+                      <>
+                        <CheckCircle size={12} /> Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} /> Copy
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-              <div className="bg-soft rounded-lg p-3 flex items-center justify-between gap-3">
-                <code className="font-mono text-xs text-navy break-all">
-                  {k.licenseKey}
-                </code>
-                <button
-                  onClick={() => copy(k.licenseKey, k.id)}
-                  className="shrink-0 flex items-center gap-1 text-xs bg-brand hover:bg-brand-dark text-white px-3 py-1.5 rounded font-semibold"
-                >
-                  {copiedId === k.id ? (
-                    <>
-                      <CheckCircle size={12} /> Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={12} /> Copy
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Reveal>
       )}
     </div>
   );

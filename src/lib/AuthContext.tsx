@@ -7,27 +7,43 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { AuthResponse, AuthState, LoginRequest, RegisterRequest } from "../types/auth";
+import {
+  AuthResponse,
+  AuthState,
+  LoginRequest,
+  RegisterRequest,
+} from "../types/auth";
 import { User } from "../types/user";
 import { tokenStorage } from "./token-storage";
 import { authService } from "../api/services/authService";
 
 interface AuthContextValue extends AuthState {
+  // Auth actions
   login: (data: LoginRequest) => Promise<AuthResponse>;
   register: (data: RegisterRequest) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   setUser: (user: User | null) => void;
+
+  // Global toast (Astro-style)
+  toast: string | null;
+  showToast: (message: string) => void;
+  dismissToast: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(() => tokenStorage.getUser<User>());
-  const [token, setToken] = useState<string | null>(() => tokenStorage.getToken());
+  const [user, setUserState] = useState<User | null>(() =>
+    tokenStorage.getUser<User>(),
+  );
+  const [token, setToken] = useState<string | null>(() =>
+    tokenStorage.getToken(),
+  );
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  // Keep in sync if another tab logs out
+  // Cross-tab sync
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === "su_token") {
@@ -38,6 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  // Auto-dismiss toast after 1s (Astro-style)
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 1000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+  }, []);
+
+  const dismissToast = useCallback(() => setToast(null), []);
 
   const persistAuth = useCallback((res: AuthResponse) => {
     const u: User = {
@@ -66,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [persistAuth]
+    [persistAuth],
   );
 
   const register = useCallback(
@@ -80,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [persistAuth]
+    [persistAuth],
   );
 
   const logout = useCallback(async () => {
@@ -129,8 +158,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshProfile,
       setUser,
+      toast,
+      showToast,
+      dismissToast,
     }),
-    [user, token, isLoading, login, register, logout, refreshProfile, setUser]
+    [
+      user,
+      token,
+      isLoading,
+      toast,
+      login,
+      register,
+      logout,
+      refreshProfile,
+      setUser,
+      showToast,
+      dismissToast,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -138,6 +182,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuthContext() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuthContext must be used inside <AuthProvider>");
+  if (!ctx)
+    throw new Error("useAuthContext must be used inside <AuthProvider>");
   return ctx;
 }
+
+/** Alias for Astro-style imports */
+export const useAuth = useAuthContext;
