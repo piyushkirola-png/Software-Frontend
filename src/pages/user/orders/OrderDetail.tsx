@@ -12,6 +12,7 @@ import { useState } from "react";
 import Reveal from "../../../components/animations/Reveal";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { useOrder } from "../../../api/queries/useOrders";
+import { resolveImageUrl } from "../../../lib/upload";
 
 const API_URL =
   import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
@@ -21,7 +22,7 @@ export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const orderId = Number(id);
   const { showToast } = useAuthContext();
-  const { data: order, isLoading, isError, refetch } = useOrder(orderId);
+  const { data: order, isLoading, isError } = useOrder(orderId);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const copy = (text: string, id: number) => {
@@ -56,6 +57,7 @@ export default function OrderDetail() {
 
   return (
     <div className="space-y-5">
+      {/* Back link */}
       <Link
         to="/user/orders"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-brand transition"
@@ -63,7 +65,7 @@ export default function OrderDetail() {
         <ArrowLeft size={14} /> Back to Orders
       </Link>
 
-      {/* Header card */}
+      {/* ============ HEADER CARD ============ */}
       <Reveal>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
@@ -125,7 +127,7 @@ export default function OrderDetail() {
         </div>
       </Reveal>
 
-      {/* Items */}
+      {/* ============ ITEMS ============ */}
       <Reveal>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
           <h2 className="text-sm font-bold text-navy mb-4">Items</h2>
@@ -137,10 +139,7 @@ export default function OrderDetail() {
               >
                 <div className="w-16 h-16 bg-soft rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
                   <img
-                    src={
-                      item.thumbnailUrl ||
-                      "https://placehold.co/64x64?text=Img"
-                    }
+                    src={resolveImageUrl(item.thumbnailUrl)}
                     alt={item.productTitle}
                     className="max-h-full max-w-full object-contain p-1"
                   />
@@ -172,7 +171,7 @@ export default function OrderDetail() {
         </div>
       </Reveal>
 
-      {/* License keys */}
+      {/* ============ LICENSE KEYS ============ */}
       {order.status === "SUCCESS" &&
         order.items.some((i) => i.licenseKey) && (
           <Reveal>
@@ -221,6 +220,7 @@ export default function OrderDetail() {
   );
 }
 
+// ============ SUB COMPONENTS ============
 function InfoCell({
   label,
   value,

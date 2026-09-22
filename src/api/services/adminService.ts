@@ -1,4 +1,11 @@
-import { apiDelete, apiGet, apiPost, apiPut, apiClient, ApiResponse } from "../../lib/api-client";
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPut,
+  apiClient,
+  ApiResponse,
+} from "../../lib/api-client";
 import { Category } from "../../types/category";
 import { Product, PagedResponse } from "../../types/product";
 import { Order } from "../../types/order";
@@ -169,10 +176,15 @@ export const adminService = {
   },
 
   async getRecentOrders(limit = 10): Promise<RecentOrder[]> {
-    return apiGet<RecentOrder[]>(`/admin/dashboard/recent-orders?limit=${limit}`);
+    return apiGet<RecentOrder[]>(
+      `/admin/dashboard/recent-orders?limit=${limit}`,
+    );
   },
 
-  async getSalesReport(fromDate?: string, toDate?: string): Promise<SalesReport> {
+  async getSalesReport(
+    fromDate?: string,
+    toDate?: string,
+  ): Promise<SalesReport> {
     const params = new URLSearchParams();
     if (fromDate) params.append("fromDate", fromDate);
     if (toDate) params.append("toDate", toDate);
@@ -208,7 +220,7 @@ export const adminService = {
     page = 0,
     size = 20,
     status?: string,
-    categoryId?: number
+    categoryId?: number,
   ): Promise<PagedResponse<Product>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
@@ -240,7 +252,7 @@ export const adminService = {
   async getAllCoupons(
     page = 0,
     size = 20,
-    status?: string
+    status?: string,
   ): Promise<PagedResponse<Coupon>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
@@ -268,7 +280,7 @@ export const adminService = {
     page = 0,
     size = 20,
     status?: string,
-    search?: string
+    search?: string,
   ): Promise<PagedResponse<Order>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
@@ -292,7 +304,7 @@ export const adminService = {
   async getAllUsers(
     page = 0,
     size = 20,
-    search?: string
+    search?: string,
   ): Promise<PagedResponse<User>> {
     const params: Record<string, unknown> = { page, size };
     if (search) params.search = search;
@@ -301,7 +313,7 @@ export const adminService = {
 
   async updateUser(
     id: number,
-    data: { name?: string; phone?: string; role?: string; isActive?: boolean }
+    data: { name?: string; phone?: string; role?: string; isActive?: boolean },
   ): Promise<User> {
     return apiPut<User>(`/admin/users/${id}`, data);
   },
@@ -318,7 +330,7 @@ export const adminService = {
   async getAllReviews(
     page = 0,
     size = 20,
-    status?: string
+    status?: string,
   ): Promise<PagedResponse<Review>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
@@ -343,7 +355,7 @@ export const adminService = {
     size = 50,
     status?: string,
     productId?: number,
-    variantId?: number
+    variantId?: number,
   ): Promise<PagedResponse<AdminKey>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
@@ -370,8 +382,13 @@ export const adminService = {
     file: File,
     productId: number,
     variantId?: number,
-    batchName?: string
-  ): Promise<{ totalRows: number; inserted: number; skipped: number; errors: string[] }> {
+    batchName?: string,
+  ): Promise<{
+    totalRows: number;
+    inserted: number;
+    skipped: number;
+    errors: string[];
+  }> {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -383,7 +400,7 @@ export const adminService = {
     const res = await apiClient.post<ApiResponse<any>>(
       `/admin/keys/bulk-upload?${params}`,
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return res.data.data;
   },

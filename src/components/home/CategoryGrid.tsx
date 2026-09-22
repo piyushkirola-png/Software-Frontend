@@ -2,6 +2,7 @@ import { ArrowRight, Loader2, LayoutGrid } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCategories } from "../../api/queries/useCategories";
 import Reveal from "../animations/Reveal";
+import { resolveImageUrl } from "../../lib/upload";
 
 export default function CategoryGrid() {
   const { data: categories, isLoading, error } = useCategories();
@@ -53,10 +54,7 @@ export default function CategoryGrid() {
                 >
                   <div className="aspect-square overflow-hidden bg-soft">
                     <img
-                      src={
-                        c.imageUrl ||
-                        "https://placehold.co/300x300?text=Category"
-                      }
+                      src={resolveImageUrl(c.imageUrl)}
                       alt={c.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />

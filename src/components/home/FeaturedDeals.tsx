@@ -7,6 +7,7 @@ import { useFeaturedProducts } from "../../api/queries/useProducts";
 import { Product } from "../../types/product";
 import Reveal from "../animations/Reveal";
 import { SkeletonCard } from "../ui/Skeleton";
+import { resolveImageUrl } from "../../lib/upload";
 
 export default function FeaturedDeals() {
   const { data: products, isLoading, error } = useFeaturedProducts();
@@ -16,7 +17,7 @@ export default function FeaturedDeals() {
     id: p.id,
     slug: p.slug,
     title: p.title,
-    image: p.thumbnailUrl || "https://placehold.co/300x200?text=Product",
+    image: resolveImageUrl(p.thumbnailUrl),
     mrp: p.mrp ?? undefined,
     price: p.price,
     hasVariants: p.hasVariants,

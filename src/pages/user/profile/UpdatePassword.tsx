@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Lock, Save, Eye, EyeOff, ShieldCheck, AlertCircle } from "lucide-react";
+import {
+  Lock,
+  Save,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
 import Button from "../../../components/ui/Button";
 import Reveal from "../../../components/animations/Reveal";
 import { useAuthContext } from "../../../lib/AuthContext";
@@ -57,6 +64,7 @@ export default function UpdatePassword() {
 
   return (
     <div className="space-y-5 max-w-xl">
+      {/* ============ HEADER ============ */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-navy">
           Update Password
@@ -68,6 +76,7 @@ export default function UpdatePassword() {
 
       <Reveal>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
+          {/* Section header */}
           <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white">
               <ShieldCheck className="h-5 w-5" />
@@ -82,6 +91,7 @@ export default function UpdatePassword() {
             </div>
           </div>
 
+          {/* Form */}
           <form onSubmit={submit} className="space-y-4">
             <PasswordField
               label="Current Password"
@@ -108,6 +118,7 @@ export default function UpdatePassword() {
               placeholder="Re-enter new password"
             />
 
+            {/* Info note */}
             <div className="bg-brand/5 border border-brand/20 rounded-xl p-3 flex items-start gap-2">
               <Lock className="h-3.5 w-3.5 text-brand shrink-0 mt-0.5" />
               <p className="text-[11px] text-muted">
@@ -116,6 +127,7 @@ export default function UpdatePassword() {
               </p>
             </div>
 
+            {/* Error */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700 flex items-start gap-2">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
@@ -133,6 +145,7 @@ export default function UpdatePassword() {
   );
 }
 
+// ============ SUB COMPONENT ============
 function PasswordField({
   label,
   value,

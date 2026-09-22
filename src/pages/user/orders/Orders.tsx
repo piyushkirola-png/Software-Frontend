@@ -8,19 +8,22 @@ export default function UserOrders() {
 
   return (
     <div className="space-y-5">
+      {/* ============ HEADER ============ */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-navy">My Orders</h1>
         <p className="text-muted mt-1 text-sm">
-          {orders.length} order{orders.length !== 1 ? "s" : ""}
+          {orders.length} order{orders.length !== 1 ? "s" : ""} total
         </p>
       </div>
 
+      {/* ============ LOADING ============ */}
       {isLoading && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
+      {/* ============ ERROR ============ */}
       {isError && (
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
           <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
@@ -34,6 +37,7 @@ export default function UserOrders() {
         </div>
       )}
 
+      {/* ============ EMPTY ============ */}
       {!isLoading && !isError && orders.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
@@ -54,47 +58,60 @@ export default function UserOrders() {
         </div>
       )}
 
-      {!isLoading && orders.length > 0 && (
+      {/* ============ TABLE ============ */}
+      {!isLoading && !isError && orders.length > 0 && (
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="divide-y divide-gray-100">
-              {orders.map((o) => (
-                <Link
-                  key={o.id}
-                  to={`/user/orders/${o.id}`}
-                  className="block p-5 hover:bg-soft transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-navy text-sm font-mono">
-                          {o.orderNumber}
-                        </span>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="bg-soft text-left text-[11px] uppercase tracking-wider text-muted font-semibold">
+                    <th className="px-4 py-3">Order ID</th>
+                    <th className="px-4 py-3">Items</th>
+                    <th className="px-4 py-3">Total</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o) => (
+                    <tr
+                      key={o.id}
+                      className="border-t border-gray-100 hover:bg-soft/50 transition"
+                    >
+                      <td className="px-4 py-3 font-mono font-bold text-xs text-navy whitespace-nowrap">
+                        {o.orderNumber}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted">
+                        {o.items.length} item{o.items.length !== 1 ? "s" : ""}
+                      </td>
+                      <td className="px-4 py-3 font-bold text-navy whitespace-nowrap">
+                        ₹{o.total.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3">
                         <StatusBadge status={o.status} />
-                      </div>
-                      <div className="text-xs text-muted mt-1">
-                        {new Date(o.createdAt).toLocaleString("en-IN", {
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted whitespace-nowrap">
+                        {new Date(o.createdAt).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
                         })}
-                        {" • "}
-                        {o.items.length} item{o.items.length !== 1 ? "s" : ""}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0 flex items-center gap-3">
-                      <div>
-                        <div className="font-bold text-navy">
-                          ₹{o.total.toFixed(2)}
-                        </div>
-                      </div>
-                      <ChevronRight size={18} className="text-muted" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        <Link
+                          to={`/user/orders/${o.id}`}
+                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600 transition"
+                          title="View Order"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </Reveal>

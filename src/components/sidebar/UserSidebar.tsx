@@ -6,7 +6,6 @@ import {
   Package,
   Key,
   Download,
-  MapPin,
   User,
   Lock,
   LogOut,
@@ -17,18 +16,17 @@ import { useAuthContext } from "../../lib/AuthContext";
 import Button from "../ui/Button";
 
 const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
-  { label: "Orders", href: "/user/orders", icon: Package },
-  { label: "License Keys", href: "/user/keys", icon: Key },
-  { label: "Downloads", href: "/user/downloads", icon: Download },
-  { label: "Addresses", href: "/user/addresses", icon: MapPin },
-  { label: "Account Details", href: "/user/profile", icon: User },
-  { label: "Update Password", href: "/user/password", icon: Lock },
+  { label: "Dashboard",       href: "/user/dashboard", icon: LayoutDashboard },
+  { label: "Orders",          href: "/user/orders",    icon: Package },
+  { label: "License Keys",    href: "/user/keys",      icon: Key },
+  { label: "Downloads",       href: "/user/downloads", icon: Download },
+  { label: "Profile",         href: "/user/profile",   icon: User },
+  { label: "Update Password", href: "/user/password",  icon: Lock },
 ];
 
 export default function UserSidebar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuthContext();
+  const { logout } = useAuthContext();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -51,11 +49,9 @@ export default function UserSidebar() {
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
-          <div className="leading-tight">
-            <div className="text-sm font-extrabold text-white tracking-tight">
-              Softora
-            </div>
-          </div>
+          <span className="text-lg font-bold text-white">
+            Softora <span className="text-brand-light"></span>
+          </span>
         </Link>
         <button
           className="lg:hidden p-1.5 rounded-lg hover:bg-white/10 text-white"
@@ -64,21 +60,6 @@ export default function UserSidebar() {
         >
           <X className="h-5 w-5" />
         </button>
-      </div>
-
-      {/* User info */}
-      <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white font-bold text-sm shrink-0">
-          {user?.name?.[0]?.toUpperCase() || "U"}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-bold text-white text-xs truncate">
-            {user?.name || "User"}
-          </div>
-          <div className="text-[10px] text-gray-400 truncate">
-            {user?.email}
-          </div>
-        </div>
       </div>
 
       {/* Nav */}

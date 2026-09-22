@@ -1,12 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminService, CategoryRequest, ProductRequest, CouponRequest } from "../services/adminService";
+import {
+  adminService,
+  CategoryRequest,
+  ProductRequest,
+  CouponRequest,
+} from "../services/adminService";
 
 // Categories
 export function useCreateCategory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CategoryRequest) => adminService.createCategory(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
   });
 }
 
@@ -15,7 +21,8 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: CategoryRequest }) =>
       adminService.updateCategory(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
   });
 }
 
@@ -23,7 +30,8 @@ export function useDeleteCategory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => adminService.deleteCategory(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["admin", "categories"] }),
   });
 }
 
@@ -211,5 +219,20 @@ export function useDeleteKey() {
   return useMutation({
     mutationFn: (id: number) => adminService.deleteKey(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "keys"] }),
+  });
+}
+
+export function useUploadProductImage() {
+  return useMutation({
+    mutationFn: async ({
+      file,
+      onProgress,
+    }: {
+      file: File;
+      onProgress?: (p: number) => void;
+    }) => {
+      const { uploadProductImage } = await import("../../lib/upload");
+      return uploadProductImage(file, onProgress);
+    },
   });
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,6 +18,7 @@ import {
   useToggleUserActive,
   useDeleteUser,
 } from "../../../api/mutations/adminMutations";
+import userService from "../../../api/services/userService";
 import Badge from "../../../components/ui/Badge";
 import type { User } from "../../../types/user";
 
@@ -35,6 +36,7 @@ export default function AdminUsers() {
   } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [menuOpenFor, setMenuOpenFor] = useState<number | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!toast) return;
@@ -60,6 +62,9 @@ export default function AdminUsers() {
 
   const users = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
+  const totalElements = data?.totalElements ?? 0;
+  const rangeStart = users.length === 0 ? 0 : page * PAGE_SIZE + 1;
+  const rangeEnd = page * PAGE_SIZE + users.length;
 
   const handleToggleConfirm = () => {
     if (!confirmAction) return;
@@ -145,158 +150,169 @@ export default function AdminUsers() {
             <div className="col-span-1 text-right">Actions</div>
           </div>
 
-          {users.map((u) => (
-            <div
-              key={u.id}
-              className="grid grid-cols-1 md:grid-cols-12 gap-3 px-5 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/40 transition items-center"
-            >
-              <div className="col-span-3 flex items-center gap-3 min-w-0">
-                {u.avatarUrl ? (
-                  <img
-                    src={u.avatarUrl}
-                    alt={u.name}
-                    className="h-10 w-10 rounded-full object-cover shrink-0 border border-gray-200"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white text-sm font-bold shrink-0">
-                    {u.name?.[0]?.toUpperCase() || "U"}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-navy truncate">
-                    {u.name}
+          {users.map((u) => {
+            const avatarSrc = userService.absoluteAvatarUrl(u.avatarUrl);
+            const showImage = avatarSrc && !imgErrors[u.id];
+
+            return (
+              <div
+                key={u.id}
+                className="grid grid-cols-1 md:grid-cols-12 gap-3 px-5 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/40 transition items-center"
+              >
+                <div className="col-span-3 flex items-center gap-3 min-w-0">
+                  {showImage ? (
+                    <img
+                      src={avatarSrc}
+                      alt={u.name}
+                      className="h-10 w-10 rounded-full object-cover shrink-0 border border-gray-200"
+                      onError={() =>
+                        setImgErrors((prev) => ({ ...prev, [u.id]: true }))
+                      }
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand to-brand-light flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {u.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-navy truncate">
+                      {u.name}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="col-span-3 text-xs text-navy/70 truncate">
-                {u.email}
-              </div>
+                <div className="col-span-3 text-xs text-navy/70 truncate">
+                  {u.email}
+                </div>
 
-              <div className="col-span-2 text-xs text-navy/70 truncate">
-                {u.phone || "—"}
-              </div>
+                <div className="col-span-2 text-xs text-navy/70 truncate">
+                  {u.phone || "—"}
+                </div>
 
-              <div className="col-span-1">
-                <Badge color={u.role === "ADMIN" ? "navy" : "blue"}>
-                  {u.role}
-                </Badge>
-              </div>
+                <div className="col-span-1">
+                  <Badge color={u.role === "ADMIN" ? "navy" : "blue"}>
+                    {u.role}
+                  </Badge>
+                </div>
 
-              <div className="col-span-1 text-xs text-muted">
-                {fmtDate(u.createdAt)}
-              </div>
+                <div className="col-span-1 text-xs text-muted">
+                  {fmtDate(u.createdAt)}
+                </div>
 
-              <div className="col-span-1">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                    u.isActive
-                      ? "bg-success/10 text-success"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
+                <div className="col-span-1">
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      u.isActive ? "bg-success" : "bg-gray-400"
-                    }`}
-                  />
-                  {u.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
-
-              <div className="col-span-1 flex justify-start md:justify-end relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpenFor(menuOpenFor === u.id ? null : u.id);
-                  }}
-                  className="p-2 rounded-lg text-muted hover:text-navy hover:bg-gray-100 transition"
-                  aria-label="Actions"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-
-                {menuOpenFor === u.id && (
-                  <div
-                    className="absolute right-0 top-10 z-50 w-48 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden text-left"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {u.isActive ? (
-                      <button
-                        onClick={() => {
-                          setMenuOpenFor(null);
-                          setConfirmAction({ type: "toggle", user: u });
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-navy hover:bg-gray-50 transition"
-                      >
-                        <PowerOff className="h-3.5 w-3.5" />
-                        Deactivate
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setMenuOpenFor(null);
-                          setConfirmAction({ type: "toggle", user: u });
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-navy hover:bg-gray-50 transition"
-                      >
-                        <Power className="h-3.5 w-3.5" />
-                        Activate
-                      </button>
-                    )}
-
-                    <div className="h-px bg-gray-100" />
-
-                    <button
-                      onClick={() => {
-                        setMenuOpenFor(null);
-                        if (u.isActive) {
-                          setToast(
-                            "Active users must be deactivated before deletion",
-                          );
-                        } else {
-                          setConfirmAction({ type: "delete", user: u });
-                        }
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${
-                        u.isActive
-                          ? "text-gray-300 cursor-not-allowed"
-                          : "text-danger hover:bg-red-50"
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${u.isActive
+                        ? "bg-success/10 text-success"
+                        : "bg-gray-200 text-gray-600"
                       }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${u.isActive ? "bg-success" : "bg-gray-400"
+                        }`}
+                    />
+                    {u.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+
+                <div className="col-span-1 flex justify-start md:justify-end relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpenFor(menuOpenFor === u.id ? null : u.id);
+                    }}
+                    className="p-2 rounded-lg text-muted hover:text-navy hover:bg-gray-100 transition"
+                    aria-label="Actions"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+
+                  {menuOpenFor === u.id && (
+                    <div
+                      className="absolute right-0 top-10 z-50 w-48 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden text-left"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
-                    </button>
-                  </div>
-                )}
+                      {u.isActive ? (
+                        <button
+                          onClick={() => {
+                            setMenuOpenFor(null);
+                            setConfirmAction({ type: "toggle", user: u });
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-navy hover:bg-gray-50 transition"
+                        >
+                          <PowerOff className="h-3.5 w-3.5" />
+                          Deactivate
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setMenuOpenFor(null);
+                            setConfirmAction({ type: "toggle", user: u });
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-navy hover:bg-gray-50 transition"
+                        >
+                          <Power className="h-3.5 w-3.5" />
+                          Activate
+                        </button>
+                      )}
+
+                      <div className="h-px bg-gray-100" />
+
+                      <button
+                        onClick={() => {
+                          setMenuOpenFor(null);
+                          if (u.isActive) {
+                            setToast(
+                              "Active users must be deactivated before deletion",
+                            );
+                          } else {
+                            setConfirmAction({ type: "delete", user: u });
+                          }
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${u.isActive
+                            ? "text-gray-300 cursor-not-allowed"
+                            : "text-danger hover:bg-red-50"
+                          }`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Pagination */}
-      {!isLoading && !isError && totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            disabled={page === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" />
-            Prev
-          </button>
-          <span className="text-xs text-muted font-medium">
-            Page {page + 1} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          >
-            Next
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+      {!isLoading && !isError && users.length > 0 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
+          <div className="text-xs text-muted">
+            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            {" – "}
+            <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
+            <span className="font-semibold text-navy">{totalElements}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-xs font-semibold text-navy px-2">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 

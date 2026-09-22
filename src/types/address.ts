@@ -9,6 +9,7 @@ export interface Address {
   pincode: string;
   country: string;
   isDefault: boolean;
+  gstNumber?: string | null;
   createdAt?: string;
 }
 
@@ -22,4 +23,5 @@ export interface AddressRequest {
   pincode: string;
   country?: string;
   isDefault?: boolean;
+  gstNumber?: string;
 }

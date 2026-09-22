@@ -5,6 +5,7 @@ import {
   useUpdateCartQuantity,
   useRemoveCartItem,
 } from "../../api/mutations/cartMutations";
+import { resolveImageUrl } from "../../lib/upload";
 
 interface Props {
   item: CartItem;
@@ -27,7 +28,7 @@ export default function CartItemRow({ item }: Props) {
         className="w-20 h-20 bg-soft rounded-xl overflow-hidden shrink-0 flex items-center justify-center border border-gray-100"
       >
         <img
-          src={item.thumbnailUrl || "https://placehold.co/80x80?text=Img"}
+          src={resolveImageUrl(item.thumbnailUrl)}
           alt={item.productTitle}
           className="max-h-full max-w-full object-contain p-2"
         />

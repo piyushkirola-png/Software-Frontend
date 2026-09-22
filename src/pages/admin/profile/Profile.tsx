@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAuthContext } from "../../../lib/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User as UserIcon,
@@ -25,6 +26,7 @@ import type { UpdateProfileRequest } from "../../../api/services/userService";
 import Button from "../../../components/ui/Button";
 
 export default function AdminProfile() {
+  const { setUser, refreshProfile } = useAuthContext();
   const { data, isLoading, isError, refetch } = useUserProfile();
   const [editOpen, setEditOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -85,9 +87,10 @@ export default function AdminProfile() {
         open={editOpen}
         profile={data}
         onClose={() => setEditOpen(false)}
-        onSuccess={() => {
+        onSuccess={async () => {
           setEditOpen(false);
-          refetch();
+          await refetch();
+          await refreshProfile();
           setToast("Profile updated successfully!");
         }}
       />
@@ -115,9 +118,6 @@ export default function AdminProfile() {
   );
 }
 
-// ============================================================
-// VIEW MODE
-// ============================================================
 function ViewMode({ profile }: { profile: User }) {
   const avatarSrc = userService.absoluteAvatarUrl(profile.avatarUrl);
   const [imgFailed, setImgFailed] = useState(false);
@@ -184,9 +184,7 @@ function ViewMode({ profile }: { profile: User }) {
   );
 }
 
-// ============================================================
-// EDIT MODAL
-// ============================================================
+
 function EditAdminModal({
   open,
   profile,
@@ -224,9 +222,9 @@ function EditAdminModal({
 
   const onField =
     (key: keyof UpdateProfileRequest) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((f) => ({ ...f, [key]: e.target.value }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm((f) => ({ ...f, [key]: e.target.value }));
+      };
 
   const handlePickFile = () => fileInputRef.current?.click();
 

@@ -42,7 +42,7 @@ export function useAdminCategories() {
 // Products
 export function useAdminProducts(
   page = 0,
-  size = 20,
+  size = 10,
   status?: string,
   categoryId?: number
 ) {
@@ -82,7 +82,7 @@ export function useAdminUsers(page = 0, size = 20, search?: string) {
 }
 
 // Reviews
-export function useAdminReviews(page = 0, size = 20, status?: string) {
+export function useAdminReviews(page = 0, size = 10, status?: string) {
   return useQuery({
     queryKey: ["admin", "reviews", page, size, status],
     queryFn: () => adminService.getAllReviews(page, size, status),
@@ -92,7 +92,7 @@ export function useAdminReviews(page = 0, size = 20, status?: string) {
 // Keys
 export function useAdminKeys(
   page = 0,
-  size = 50,
+  size = 10,
   status?: string,
   productId?: number,
   variantId?: number

@@ -31,6 +31,8 @@ import {
 import { ProductRequest } from "../../../api/services/adminService";
 import { Product } from "../../../types/product";
 import { getErrorMessage } from "../../../lib/api-client";
+import ImageUploader from "../../../components/ui/ImageUploader";
+import { resolveImageUrl } from "../../../lib/upload";
 
 const EMPTY: ProductRequest = {
   categoryId: 0,
@@ -44,18 +46,11 @@ const EMPTY: ProductRequest = {
 const LICENSE_OPTIONS = ["1 User", "2 User", "3 User", "5 User", "10 User"];
 const DURATION_OPTIONS = ["1 Year", "3 Year"];
 
-// helper — fixes relative paths like "products/x.png" → "/products/x.png"
-const resolveUrl = (url?: string | null) => {
-  if (!url) return "";
-  if (url.startsWith("http") || url.startsWith("/")) return url;
-  return `/${url}`;
-};
-
 export default function AdminProducts() {
   const { showToast } = useAuthContext();
   const [page, setPage] = useState(0);
 
-  const { data, isLoading, refetch, isRefetching } = useAdminProducts(page, 20);
+  const { data, isLoading, refetch, isRefetching } = useAdminProducts(page, 10);
   const { data: categories = [] } = useAdminCategories();
 
   const create = useCreateProduct();
@@ -74,8 +69,6 @@ export default function AdminProducts() {
   }>({ open: false, product: null });
 
   const [toast, setToast] = useState<string | null>(null);
-
-  // ── Popover open state (declared BEFORE any useEffect that uses it) ──
   const [filterOpen, setFilterOpen] = useState(false);
 
   // ── APPLIED filters ─────────────────────────────
@@ -120,7 +113,6 @@ export default function AdminProducts() {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEsc);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filterOpen,
     filterName,
@@ -133,6 +125,7 @@ export default function AdminProducts() {
 
   const products = data?.content || [];
   const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || 0;
 
   const filtered = useMemo(() => {
     const min = filterPriceMin ? Number(filterPriceMin) : null;
@@ -158,6 +151,9 @@ export default function AdminProducts() {
     filterPriceMin,
     filterPriceMax,
   ]);
+
+  const rangeStart = filtered.length === 0 ? 0 : page * 20 + 1;
+  const rangeEnd = page * 20 + filtered.length;
 
   const hasFilters =
     filterName !== "" ||
@@ -318,8 +314,8 @@ export default function AdminProducts() {
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
                 }`}
             >
               <Filter className="h-4 w-4" />
@@ -506,7 +502,7 @@ export default function AdminProducts() {
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1200px] text-sm">
+              <table className="w-full min-w-[1000px] text-xs">
                 <thead>
                   <tr className="bg-soft text-left text-[11px] uppercase tracking-wider text-muted font-semibold">
                     <th className="px-4 py-3">Product</th>
@@ -531,10 +527,7 @@ export default function AdminProducts() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-soft rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                             <img
-                              src={
-                                resolveUrl(p.thumbnailUrl) ||
-                                "https://placehold.co/40x40?text=P"
-                              }
+                              src={resolveImageUrl(p.thumbnailUrl)}
                               alt=""
                               className="max-h-full max-w-full object-contain p-0.5"
                               onError={(e) => {
@@ -627,27 +620,34 @@ export default function AdminProducts() {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 disabled:opacity-40 transition"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" />
-            Prev
-          </button>
-          <span className="text-xs text-muted font-medium px-3">
-            Page {page + 1} of {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 disabled:opacity-40 transition"
-          >
-            Next
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
+          <div className="text-xs text-muted">
+            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            {" – "}
+            <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
+            <span className="font-semibold text-navy">{totalElements}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-xs font-semibold text-navy px-2">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -667,7 +667,7 @@ export default function AdminProducts() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
             <div>
               <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
                 Category
@@ -693,6 +693,17 @@ export default function AdminProducts() {
                 value={form.title}
                 onChange={(e) => update_("title", e.target.value)}
                 placeholder="Windows 11 Pro License"
+                className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
+                Slug
+              </label>
+              <input
+                value={form.slug || ""}
+                onChange={(e) => update_("slug", e.target.value)}
+                placeholder="windows-11-pro"
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
@@ -755,17 +766,11 @@ export default function AdminProducts() {
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <div>
-              <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
-                Thumbnail URL
-              </label>
-              <input
-                value={form.thumbnailUrl || ""}
-                onChange={(e) => update_("thumbnailUrl", e.target.value)}
-                placeholder="/products/windows11.png"
-                className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
-              />
-            </div>
+            <ImageUploader
+              label="Thumbnail"
+              value={form.thumbnailUrl || ""}
+              onChange={(url) => update_("thumbnailUrl", url)}
+            />
             <div>
               <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
                 Download Path

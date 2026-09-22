@@ -5,7 +5,10 @@ export interface PaymentInitiateResponse {
   amount: number;
   currency: string;
   status: string;
-  gatewayData: Record<string, unknown>;
+  gatewayData: {
+    paymentLink?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface Payment {

@@ -33,9 +33,8 @@ import UserOrders from "./pages/user/orders/Orders";
 import OrderDetail from "./pages/user/orders/OrderDetail";
 import LicenseKeys from "./pages/user/keys/LicenseKeys";
 import Downloads from "./pages/user/downloads/Downloads";
-import Addresses from "./pages/user/addresses/Addresses";
-import AccountDetails from "./pages/user/account/AccountDetails";
-import UpdatePassword from "./pages/user/account/UpdatePassword";
+import Profile from "./pages/user/profile/Profile";
+import UpdatePassword from "./pages/user/profile/UpdatePassword";
 
 // Admin pages
 import AdminLayout from "./components/layout/AdminLayout";
@@ -93,17 +92,22 @@ export default function App() {
             }}
           />
           <Routes>
-            {/* Standalone pages */}
+            {/* Home — has its own layout built in */}
             <Route path="/" element={<Home />} />
-            <Route path="/products" element={<ProductListing />} />
-            <Route path="/products/category/:slug" element={<CategoryListing />} />
-            <Route path="/product/:slug" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/checkout/success/:orderNumber" element={<OrderSuccess />} />
 
-            {/* Public */}
+            {/* Public layout — everything with Header + Footer */}
             <Route element={<PublicLayout />}>
+              <Route path="/products" element={<ProductListing />} />
+              <Route path="/products/category/:slug" element={<CategoryListing />} />
+              <Route path="/product/:slug" element={<ProductDetail />} />
+
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route
+                path="/checkout/success/:orderNumber"
+                element={<OrderSuccess />}
+              />
+
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/lost-password" element={<LostPassword />} />
@@ -130,8 +134,7 @@ export default function App() {
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="keys" element={<LicenseKeys />} />
               <Route path="downloads" element={<Downloads />} />
-              <Route path="addresses" element={<Addresses />} />
-              <Route path="profile" element={<AccountDetails />} />
+              <Route path="profile" element={<Profile />} />
               <Route path="password" element={<UpdatePassword />} />
             </Route>
 

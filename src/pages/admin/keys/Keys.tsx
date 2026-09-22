@@ -9,10 +9,12 @@ import {
   Loader2,
   Plus,
   AlertCircle,
+  ChevronDown,
   Filter,
   RefreshCw,
   X,
   ChevronLeft,
+  Check,
   ChevronRight,
   CheckCircle,
 } from "lucide-react";
@@ -48,7 +50,7 @@ export default function AdminKeys() {
 
   const { data, isLoading, refetch, isRefetching } = useAdminKeys(
     page,
-    50,
+    10,
     status || undefined,
     productId,
   );
@@ -77,6 +79,163 @@ export default function AdminKeys() {
     key: any | null;
     actionType: "revoke" | "delete";
   }>({ open: false, key: null, actionType: "revoke" });
+
+  interface ProductOption {
+    id: number;
+    title: string;
+  }
+
+  interface ProductSelectProps {
+    products: ProductOption[];
+    value: number | undefined;
+    onChange: (id: number | undefined) => void;
+    placeholder?: string;
+    visibleCount?: number;
+    allowAll?: boolean;
+    className?: string;
+  }
+
+  function ProductSelect({
+    products,
+    value,
+    onChange,
+    placeholder = "— Select Product —",
+    visibleCount = 10,
+    allowAll = false,
+    className = "",
+  }: ProductSelectProps) {
+    const [open, setOpen] = useState(false);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
+
+    const selected = products.find((p) => p.id === value);
+    const label = selected ? selected.title : placeholder;
+
+    // Compute the panel position whenever it opens (and on scroll/resize)
+    const updatePosition = () => {
+      const btn = buttonRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const ITEM_HEIGHT = 25;
+      const maxHeight = visibleCount * ITEM_HEIGHT;
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        maxHeight,
+        zIndex: 9999,
+      });
+    };
+
+    useEffect(() => {
+      if (!open) return;
+      updatePosition();
+
+      const onScrollOrResize = () => updatePosition();
+      window.addEventListener("scroll", onScrollOrResize, true);
+      window.addEventListener("resize", onScrollOrResize);
+
+      const onClickOutside = (e: MouseEvent) => {
+        const target = e.target as Node;
+        if (
+          buttonRef.current?.contains(target) ||
+          panelRef.current?.contains(target)
+        ) {
+          return;
+        }
+        setOpen(false);
+      };
+      const onEsc = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setOpen(false);
+      };
+
+      document.addEventListener("mousedown", onClickOutside);
+      document.addEventListener("keydown", onEsc);
+      return () => {
+        window.removeEventListener("scroll", onScrollOrResize, true);
+        window.removeEventListener("resize", onScrollOrResize);
+        document.removeEventListener("mousedown", onClickOutside);
+        document.removeEventListener("keydown", onEsc);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, visibleCount]);
+
+    return (
+      <div className={`relative ${className}`}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="w-full flex items-center justify-between gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-left focus:outline-none focus:border-brand transition"
+        >
+          <span
+            className={selected ? "text-navy truncate" : "text-muted truncate"}
+          >
+            {label}
+          </span>
+          <ChevronDown
+            size={16}
+            className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""
+              }`}
+          />
+        </button>
+
+        {open &&
+          createPortal(
+            <div
+              ref={panelRef}
+              style={panelStyle}
+              className="bg-white border border-gray-200 rounded-xl shadow-2xl overflow-y-auto"
+            >
+              {allowAll && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(undefined);
+                    setOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-left text-navy hover:bg-soft transition"
+                >
+                  <span>All</span>
+                  {value === undefined && (
+                    <Check size={14} className="text-brand shrink-0" />
+                  )}
+                </button>
+              )}
+
+              {products.length === 0 && (
+                <div className="px-4 py-3 text-xs text-muted text-center">
+                  No products
+                </div>
+              )}
+
+              {products.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(p.id);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-left transition ${value === p.id
+                    ? "bg-brand/5 text-brand font-semibold"
+                    : "text-navy hover:bg-soft"
+                    }`}
+                >
+                  <span className="truncate">{p.title}</span>
+                  {value === p.id && (
+                    <Check size={14} className="text-brand shrink-0" />
+                  )}
+                </button>
+              ))}
+            </div>,
+            document.body
+          )}
+      </div>
+    );
+  }
 
   const [toast, setToast] = useState<string | null>(null);
 
@@ -240,8 +399,8 @@ export default function AdminKeys() {
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
                 }`}
             >
               <Filter className="h-4 w-4" />
@@ -289,22 +448,14 @@ export default function AdminKeys() {
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Product
                     </label>
-                    <select
-                      value={draftProductId ?? ""}
-                      onChange={(e) =>
-                        setDraftProductId(
-                          e.target.value ? Number(e.target.value) : undefined
-                        )
-                      }
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
-                    >
-                      <option value="">All</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title}
-                        </option>
-                      ))}
-                    </select>
+                    <ProductSelect
+                      products={products}
+                      value={draftProductId}
+                      onChange={setDraftProductId}
+                      placeholder="All"
+                      allowAll
+                      visibleCount={8}
+                    />
                   </div>
                 </div>
 
@@ -331,17 +482,20 @@ export default function AdminKeys() {
             onClick={handleRefresh}
             disabled={isRefetching}
             className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 disabled:opacity-60 transition"
-            title="Refresh"
           >
             <RefreshCw
               className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
             />
+            Refresh
           </button>
 
           {/* Add One */}
-          <Button onClick={() => setAddOpen(true)} variant="outline">
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 transition"
+          >
             <Plus size={16} /> Add One
-          </Button>
+          </button>
 
           {/* Bulk Upload */}
           <Button onClick={() => setUploadOpen(true)}>
@@ -451,7 +605,7 @@ export default function AdminKeys() {
       )}
 
       {/* ============ PAGINATION ============ */}
-      {!isLoading && keys.length > 0 && totalPages > 1 && (
+      {!isLoading && keys.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
             Showing{" "}
@@ -569,21 +723,16 @@ export default function AdminKeys() {
                 <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
                   Product
                 </label>
-                <select
-                  value={uploadProductId}
-                  onChange={(e) => {
-                    setUploadProductId(Number(e.target.value));
+                <ProductSelect
+                  products={products}
+                  value={uploadProductId || undefined}
+                  onChange={(id) => {
+                    setUploadProductId(id ?? 0);
                     setUploadVariantId(undefined);
                   }}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
-                >
-                  <option value={0}>— Select Product —</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="— Select Product —"
+                  visibleCount={10}
+                />
               </div>
 
               <Input
@@ -653,18 +802,13 @@ export default function AdminKeys() {
             <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
               Product
             </label>
-            <select
-              value={singleProductId}
-              onChange={(e) => setSingleProductId(Number(e.target.value))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
-            >
-              <option value={0}>— Select Product —</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
+            <ProductSelect
+              products={products}
+              value={singleProductId || undefined}
+              onChange={(id) => setSingleProductId(id ?? 0)}
+              placeholder="— Select Product —"
+              visibleCount={10}
+            />
           </div>
 
           <Input
@@ -750,8 +894,8 @@ export default function AdminKeys() {
                     onClick={handleConfirmAction}
                     disabled={confirmPending}
                     className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.actionType === "revoke"
-                        ? "bg-yellow-600 hover:bg-yellow-700"
-                        : "bg-red-600 hover:bg-red-700"
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : "bg-red-600 hover:bg-red-700"
                       }`}
                   >
                     {confirmPending ? (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { Loader2, PackageX } from "lucide-react";
 import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
@@ -7,8 +7,20 @@ import ProductFilters, { FilterState } from "../../components/product/ProductFil
 import Reveal from "../../components/animations/Reveal";
 import { useAllProducts } from "../../api/queries/useProducts";
 import { Product } from "../../types/product";
+import { resolveImageUrl } from "../../lib/upload";
 
 export default function ProductListing() {
+  const [params] = useSearchParams();
+  const category = params.get("category") || "";
+
+  if (category) {
+    return <Navigate to={`/products/category/${category}`} replace />;
+  }
+
+  return <ProductListingInner />;
+}
+
+function ProductListingInner() {
   const [params] = useSearchParams();
   const search = params.get("q") || "";
 
@@ -25,7 +37,7 @@ export default function ProductListing() {
     id: p.id,
     slug: p.slug,
     title: p.title,
-    image: p.thumbnailUrl || "https://placehold.co/300x200?text=Product",
+    image: resolveImageUrl(p.thumbnailUrl),
     mrp: p.mrp ?? undefined,
     price: p.price,
     hasVariants: p.hasVariants,
@@ -42,7 +54,6 @@ export default function ProductListing() {
 
   return (
     <div className="bg-soft min-h-screen">
-      {/* Header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-2xl md:text-3xl font-bold text-navy">
@@ -57,7 +68,6 @@ export default function ProductListing() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-[280px_1fr] gap-6">
-        {/* Sidebar filters */}
         <aside className="lg:sticky lg:top-24 h-fit">
           <ProductFilters
             filters={filters}
@@ -66,7 +76,6 @@ export default function ProductListing() {
           />
         </aside>
 
-        {/* Products */}
         <div>
           {isLoading && (
             <div className="bg-white rounded-2xl border border-gray-100 p-20 flex items-center justify-center">

@@ -8,6 +8,7 @@ import Reveal from "../../components/animations/Reveal";
 import { useProductsByCategory } from "../../api/queries/useProducts";
 import { useCategory } from "../../api/queries/useCategories";
 import { Product } from "../../types/product";
+import { resolveImageUrl } from "../../lib/upload";
 
 export default function CategoryListing() {
   const { slug = "" } = useParams<{ slug: string }>();
@@ -29,7 +30,7 @@ export default function CategoryListing() {
     id: p.id,
     slug: p.slug,
     title: p.title,
-    image: p.thumbnailUrl || "https://placehold.co/300x200?text=Product",
+    image: resolveImageUrl(p.thumbnailUrl),
     mrp: p.mrp ?? undefined,
     price: p.price,
     hasVariants: p.hasVariants,
@@ -46,10 +47,10 @@ export default function CategoryListing() {
 
   return (
     <div className="bg-soft min-h-screen">
-      {/* Header */}
+      {/* Breadcrumb only — no title, no description */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-1.5 text-xs text-muted mb-2">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-1.5 text-xs text-muted">
             <Link to="/" className="hover:text-brand transition">
               Home
             </Link>
@@ -58,12 +59,6 @@ export default function CategoryListing() {
               {category?.name || slug}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-navy">
-            {category?.name || "Category"}
-          </h1>
-          {category?.description && (
-            <p className="text-sm text-muted mt-1">{category.description}</p>
-          )}
         </div>
       </div>
 

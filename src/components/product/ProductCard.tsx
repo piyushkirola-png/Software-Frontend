@@ -1,4 +1,4 @@
-import { ShoppingCart, Settings, Check, Loader2 } from "lucide-react";
+import { ShoppingCart, Check, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuthContext } from "../../lib/AuthContext";
@@ -22,7 +22,7 @@ interface Props {
   onSelectVariant?: (p: ProductCardType) => void;
 }
 
-export default function ProductCard({ product, onSelectVariant }: Props) {
+export default function ProductCard({ product }: Props) {
   const nav = useNavigate();
   const { isAuthenticated } = useAuthContext();
   const addToCart = useAddToCart();
@@ -38,11 +38,6 @@ export default function ProductCard({ product, onSelectVariant }: Props) {
       return;
     }
 
-    if (product.hasVariants) {
-      onSelectVariant?.(product);
-      return;
-    }
-
     try {
       await addToCart.mutateAsync({ productId: product.id, quantity: 1 });
       setAdded(true);
@@ -55,7 +50,6 @@ export default function ProductCard({ product, onSelectVariant }: Props) {
 
   return (
     <div className="group flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-brand/30 hover:shadow-cardHover hover:-translate-y-1 transition-all duration-300">
-      {/* Image */}
       <div className="relative bg-soft aspect-square flex items-center justify-center p-6 overflow-hidden">
         {product.sale && (
           <span className="absolute top-3 left-3 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
@@ -79,7 +73,6 @@ export default function ProductCard({ product, onSelectVariant }: Props) {
         </Link>
       </div>
 
-      {/* Content */}
       <div className="flex flex-col flex-1 p-4">
         <Link to={`/product/${product.slug}`}>
           <h3 className="text-sm font-semibold text-navy leading-snug line-clamp-2 min-h-[40px] group-hover:text-brand transition-colors">
@@ -87,49 +80,41 @@ export default function ProductCard({ product, onSelectVariant }: Props) {
           </h3>
         </Link>
 
-        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
+        {/* Price — inline row */}
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
           {product.mrp && product.mrp > product.price && (
-            <span className="text-xs text-gray-400 line-through">
+            <span className="text-sm text-gray-400 line-through">
               ₹{product.mrp.toFixed(2)}
             </span>
           )}
-          <span className="text-lg font-extrabold text-navy">
+          <span className="text-sm font-extrabold text-navy">
             ₹{product.price.toFixed(2)}
           </span>
-          <span className="text-[11px] text-muted">Inc GST</span>
+          <span className="text-sm font-bold text-brand">Inc GST</span>
         </div>
 
         <div className="mt-auto pt-4">
-          {product.hasVariants ? (
-            <button
-              onClick={handleAdd}
-              className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white font-bold text-sm py-3 rounded-xl transition"
-            >
-              <Settings size={16} /> SELECT OPTIONS
-            </button>
-          ) : (
-            <button
-              onClick={handleAdd}
-              disabled={addToCart.isPending}
-              className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${
-                added
-                  ? "bg-success text-white"
-                  : "bg-brand hover:bg-brand-dark text-white"
-              } disabled:opacity-60`}
-            >
-              {addToCart.isPending ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : added ? (
-                <>
-                  <Check size={16} /> ADDED
-                </>
-              ) : (
-                <>
-                  <ShoppingCart size={16} /> ADD TO CART
-                </>
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleAdd}
+            disabled={addToCart.isPending}
+            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${
+              added
+                ? "bg-success text-white"
+                : "bg-brand hover:bg-brand-dark text-white"
+            } disabled:opacity-60`}
+          >
+            {addToCart.isPending ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : added ? (
+              <>
+                <Check size={16} /> ADDED
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={16} /> ADD TO CART
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

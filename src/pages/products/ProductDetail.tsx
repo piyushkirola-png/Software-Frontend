@@ -11,11 +11,12 @@ import {
   PackageX,
   FileText,
   MessageSquare,
+  Minus,
+  Plus,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
 import ProductGallery from "../../components/product/ProductGallery";
 import ProductReviews from "../../components/product/ProductReviews";
-import VariantModal, { Variant } from "../../components/product/VariantModal";
 import Reveal from "../../components/animations/Reveal";
 import { useProduct } from "../../api/queries/useProducts";
 import { useAuthContext } from "../../lib/AuthContext";
@@ -30,12 +31,11 @@ export default function ProductDetail() {
   const { isAuthenticated, showToast } = useAuthContext();
   const { data: product, isLoading, error } = useProduct(slug);
 
-  const [variantOpen, setVariantOpen] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const [addError, setAddError] = useState("");
   const [tab, setTab] = useState<Tab>("description");
+  const [quantity, setQuantity] = useState(1);
 
   if (isLoading) {
     return (
@@ -60,14 +60,6 @@ export default function ProductDetail() {
     );
   }
 
-  const variants: Variant[] =
-    product.variants?.map((v) => ({
-      id: v.id,
-      name: v.variantName,
-      price: v.price,
-      mrp: v.mrp ?? undefined,
-    })) || [];
-
   const handleAddToCart = async () => {
     setAddError("");
     if (!isAuthenticated) {
@@ -75,17 +67,11 @@ export default function ProductDetail() {
       return;
     }
 
-    if (product.hasVariants && !selectedVariant) {
-      setVariantOpen(true);
-      return;
-    }
-
     setAdding(true);
     try {
       await cartService.add({
         productId: product.id,
-        variantId: selectedVariant?.id,
-        quantity: 1,
+        quantity,
       });
       setAdded(true);
       showToast("Added to cart");
@@ -97,8 +83,8 @@ export default function ProductDetail() {
     }
   };
 
-  const price = selectedVariant?.price ?? product.price;
-  const mrp = selectedVariant?.mrp ?? product.mrp;
+  const price = product.price;
+  const mrp = product.mrp;
 
   return (
     <div className="bg-white min-h-screen">
@@ -123,7 +109,6 @@ export default function ProductDetail() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 pb-12 grid md:grid-cols-2 gap-10">
-        {/* Gallery */}
         <Reveal>
           <ProductGallery
             images={[product.thumbnailUrl, ...(product.images || [])].filter(
@@ -133,7 +118,6 @@ export default function ProductDetail() {
           />
         </Reveal>
 
-        {/* Info panel */}
         <Reveal delay={0.1}>
           <div className="lg:sticky lg:top-24">
             {product.categoryName && (
@@ -172,19 +156,19 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Price */}
-            <div className="mt-5 flex items-baseline gap-3 flex-wrap">
+            {/* Price — inline row */}
+            <div className="mt-5 flex items-center gap-2 flex-wrap">
               {mrp && mrp > price && (
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-base text-gray-400 line-through">
                   ₹{mrp.toFixed(2)}
                 </span>
               )}
-              <span className="text-3xl font-bold text-navy">
+              <span className="text-base font-extrabold text-navy">
                 ₹{price.toFixed(2)}
               </span>
-              <span className="text-sm text-muted">Inc GST</span>
+              <span className="text-base font-bold text-brand">Inc GST</span>
               {product.discountPercent && product.discountPercent > 0 && (
-                <span className="bg-success text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                <span className="bg-success text-white text-xs font-bold px-2.5 py-1 rounded-full ml-1">
                   {product.discountPercent}% OFF
                 </span>
               )}
@@ -197,25 +181,31 @@ export default function ProductDetail() {
               </p>
             )}
 
-            {/* Variant selector */}
-            {product.hasVariants && variants.length > 0 && (
-              <div className="mt-5 bg-soft rounded-2xl p-4 border border-gray-100">
-                <p className="text-[11px] font-bold text-navy uppercase tracking-wider mb-2">
-                  Choose Option
-                </p>
+            {/* Quantity + Add to cart */}
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden shrink-0">
                 <button
-                  onClick={() => setVariantOpen(true)}
-                  className="w-full border-2 border-brand text-brand font-semibold py-2.5 rounded-xl hover:bg-brand hover:text-white transition"
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="w-11 h-11 flex items-center justify-center text-navy hover:bg-soft disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  aria-label="Decrease quantity"
                 >
-                  {selectedVariant
-                    ? `Selected: ${selectedVariant.name}`
-                    : "Select Options"}
+                  <Minus size={16} />
+                </button>
+                <span className="w-12 text-center text-sm font-bold text-navy">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="w-11 h-11 flex items-center justify-center text-navy hover:bg-soft transition"
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={16} />
                 </button>
               </div>
-            )}
 
-            {/* Add to cart */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <Button
                 fullWidth
                 size="lg"
@@ -275,7 +265,7 @@ export default function ProductDetail() {
                   {product.activationType}
                 </div>
               )}
-              {!product.hasVariants && product.stockQuantity !== undefined && (
+              {product.stockQuantity !== undefined && (
                 <div>
                   <b className="text-navy">Availability:</b>{" "}
                   {product.stockQuantity > 0 ? (
@@ -294,10 +284,9 @@ export default function ProductDetail() {
         </Reveal>
       </div>
 
-      {/* Tabs: Description + Reviews */}
+      {/* Tabs */}
       <div className="bg-soft py-12">
         <div className="max-w-7xl mx-auto px-4">
-          {/* Tab pills */}
           <div className="bg-white rounded-2xl border border-gray-100 p-2 flex gap-1 mb-5 max-w-md">
             <button
               onClick={() => setTab("description")}
@@ -326,7 +315,6 @@ export default function ProductDetail() {
             </button>
           </div>
 
-          {/* Content */}
           {tab === "description" && (
             <Reveal>
               <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8">
@@ -351,14 +339,6 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
-
-      <VariantModal
-        open={variantOpen}
-        onClose={() => setVariantOpen(false)}
-        productTitle={product.title}
-        variants={variants}
-        onSelect={(v) => setSelectedVariant(v)}
-      />
     </div>
   );
 }

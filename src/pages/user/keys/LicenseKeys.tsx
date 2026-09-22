@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Key, Copy, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import {
+  Key,
+  Copy,
+  CheckCircle,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import Reveal from "../../../components/animations/Reveal";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { useMyOrders } from "../../../api/queries/useOrders";
@@ -43,41 +49,41 @@ export default function LicenseKeys() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-brand" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-        <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
-        <p className="text-sm text-navy mb-3">Failed to load license keys</p>
-        <button
-          onClick={() => refetch()}
-          className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
+      {/* ============ HEADER ============ */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-navy">
           My License Keys
         </h1>
         <p className="text-muted mt-1 text-sm">
-          {flatKeys.length} key{flatKeys.length !== 1 ? "s" : ""}
+          {flatKeys.length} key{flatKeys.length !== 1 ? "s" : ""} available
         </p>
       </div>
 
-      {flatKeys.length === 0 ? (
+      {/* ============ LOADING ============ */}
+      {isLoading && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
+        </div>
+      )}
+
+      {/* ============ ERROR ============ */}
+      {isError && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
+          <p className="text-sm text-navy mb-3">Failed to load license keys</p>
+          <button
+            onClick={() => refetch()}
+            className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ============ EMPTY ============ */}
+      {!isLoading && !isError && flatKeys.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
             <Key className="h-7 w-7 text-white" />
@@ -95,39 +101,57 @@ export default function LicenseKeys() {
             Browse Products
           </Link>
         </div>
-      ) : (
+      )}
+
+      {/* ============ KEYS LIST ============ */}
+      {!isLoading && !isError && flatKeys.length > 0 && (
         <Reveal>
           <div className="space-y-3">
             {flatKeys.map((k) => (
               <div
                 key={k.id}
-                className="bg-white border border-gray-100 rounded-2xl p-4 hover:border-brand/20 transition"
+                className="bg-white border border-gray-100 rounded-2xl p-4 lg:p-5 hover:border-brand/20 transition"
               >
+                {/* Meta row */}
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0">
-                    <Link
-                      to={`/product/${k.productSlug}`}
-                      className="font-semibold text-navy text-sm hover:text-brand line-clamp-2"
-                    >
-                      {k.productTitle}
-                    </Link>
-                    {k.variantName && (
-                      <div className="text-xs text-muted mt-0.5">
-                        {k.variantName}
-                      </div>
-                    )}
-                    <div className="text-[11px] text-muted mt-1">
-                      Order: <span className="font-mono">{k.orderNumber}</span>
-                      {k.soldAt && (
-                        <>
-                          {" • "}
-                          {new Date(k.soldAt).toLocaleDateString("en-IN")}
-                        </>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-brand-light text-white flex items-center justify-center shrink-0">
+                      <Key size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <Link
+                        to={`/product/${k.productSlug}`}
+                        className="font-semibold text-navy text-sm hover:text-brand line-clamp-1"
+                      >
+                        {k.productTitle}
+                      </Link>
+                      {k.variantName && (
+                        <div className="text-xs text-muted mt-0.5">
+                          {k.variantName}
+                        </div>
                       )}
+                      <div className="text-[11px] text-muted mt-1">
+                        Order{" "}
+                        <span className="font-mono font-semibold text-navy">
+                          {k.orderNumber}
+                        </span>
+                        {k.soldAt && (
+                          <>
+                            {" • "}
+                            {new Date(k.soldAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="bg-soft rounded-xl p-3 flex items-center justify-between gap-3">
+
+                {/* Key box */}
+                <div className="bg-soft rounded-xl p-3 flex items-center justify-between gap-3 border border-gray-100">
                   <code className="font-mono text-xs text-navy break-all">
                     {k.licenseKey}
                   </code>

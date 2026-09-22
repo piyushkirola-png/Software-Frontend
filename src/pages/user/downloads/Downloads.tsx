@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Reveal from "../../../components/animations/Reveal";
 import { useMyDownloads } from "../../../api/queries/useDownloads";
+import { resolveImageUrl } from "../../../lib/upload";
 
 const API_URL =
   import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
@@ -16,31 +17,9 @@ export default function Downloads() {
   const { data: downloads = [], isLoading, isError, refetch } =
     useMyDownloads();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-brand" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-        <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
-        <p className="text-sm text-navy mb-3">Failed to load downloads</p>
-        <button
-          onClick={() => refetch()}
-          className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
+      {/* ============ HEADER ============ */}
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-navy">
           My Downloads
@@ -50,7 +29,29 @@ export default function Downloads() {
         </p>
       </div>
 
-      {downloads.length === 0 ? (
+      {/* ============ LOADING ============ */}
+      {isLoading && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
+        </div>
+      )}
+
+      {/* ============ ERROR ============ */}
+      {isError && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
+          <p className="text-sm text-navy mb-3">Failed to load downloads</p>
+          <button
+            onClick={() => refetch()}
+            className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ============ EMPTY ============ */}
+      {!isLoading && !isError && downloads.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
             <DownloadIcon className="h-7 w-7 text-white" />
@@ -68,7 +69,10 @@ export default function Downloads() {
             Browse Products
           </Link>
         </div>
-      ) : (
+      )}
+
+      {/* ============ LIST ============ */}
+      {!isLoading && !isError && downloads.length > 0 && (
         <Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {downloads.map((d) => (
@@ -76,12 +80,9 @@ export default function Downloads() {
                 key={d.productId}
                 className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-4 hover:border-brand/20 transition"
               >
-                <div className="w-16 h-16 bg-soft rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="w-16 h-16 bg-soft rounded-xl overflow-hidden shrink-0 flex items-center justify-center border border-gray-100">
                   <img
-                    src={
-                      d.thumbnailUrl ||
-                      "https://placehold.co/64x64?text=Img"
-                    }
+                    src={resolveImageUrl(d.thumbnailUrl)}
                     alt={d.productTitle}
                     className="max-h-full max-w-full object-contain p-1"
                   />
@@ -92,7 +93,11 @@ export default function Downloads() {
                   </div>
                   <div className="text-xs text-muted mt-1">
                     Purchased{" "}
-                    {new Date(d.purchasedAt).toLocaleDateString("en-IN")}
+                    {new Date(d.purchasedAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </div>
                 </div>
                 <a

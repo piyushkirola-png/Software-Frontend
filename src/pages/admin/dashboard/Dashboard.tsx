@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   IndianRupee,
   Package,
@@ -31,6 +32,8 @@ import {
   useDashboardStats,
   useSalesReport,
 } from "../../../api/queries/useAdmin";
+import { useAuthContext } from "../../../lib/AuthContext";
+import userService from "../../../api/services/userService";
 
 // ============ TYPES ============
 type StatusItem = {
@@ -73,6 +76,8 @@ function fmtStatusLabel(s: string) {
 // ============ COMPONENT ============
 export default function AdminDashboard() {
   const { data: stats, isLoading, isError, refetch } = useDashboardStats();
+  const { user } = useAuthContext();
+  const avatarSrc = userService.absoluteAvatarUrl(user?.avatarUrl);
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -175,7 +180,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-navy">
-            Welcome back, Admin
+            Welcome back, {user?.name?.split(" ")[0] || "Admin"}
           </h1>
           <p className="text-muted mt-1 text-sm">
             Here's an overview of your platform
@@ -193,6 +198,28 @@ export default function AdminDashboard() {
               })}
             </span>
           </div>
+
+          {/* ===== Avatar (Astro-style) ===== */}
+          <Link
+            to="/admin/profile"
+            className="h-10 w-10 rounded-full overflow-hidden border-2 border-brand/40 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center shrink-0 hover:border-brand transition-all"
+            title="Your Profile"
+          >
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt={user?.name || "Admin"}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : (
+              <span className="text-sm font-bold text-white">
+                {user?.name?.[0]?.toUpperCase() || "A"}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 

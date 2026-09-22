@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button";
 import Reveal from "../../components/animations/Reveal";
 import { useQuery } from "@tanstack/react-query";
 import { orderService } from "../../api/services/orderService";
+import CheckoutSteps from "../../components/checkout/CheckoutSteps";
 
 export default function OrderSuccess() {
   const { orderNumber = "" } = useParams<{ orderNumber: string }>();
@@ -23,6 +24,8 @@ export default function OrderSuccess() {
   }
 
   return (
+    <>
+    <CheckoutSteps current={3} />
     <div className="bg-soft min-h-screen py-12">
       <div className="max-w-2xl mx-auto px-4">
         <Reveal>
@@ -98,5 +101,6 @@ export default function OrderSuccess() {
         </Reveal>
       </div>
     </div>
+     </>
   );
 }

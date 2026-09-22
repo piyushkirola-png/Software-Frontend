@@ -1,4 +1,5 @@
 export type Role = "USER" | "ADMIN";
+export type Gender = "MALE" | "FEMALE";
 
 export interface User {
   id: number;
@@ -9,4 +10,10 @@ export interface User {
   role: Role;
   isActive: boolean;
   createdAt?: string;
+  gender?: Gender | null;
+  currentAddress?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  pincode?: string | null;
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { resolveImageUrl } from "../../lib/upload";
 
 interface Props {
   images: string[];
@@ -14,7 +15,7 @@ export default function ProductGallery({ images, alt }: Props) {
       {/* Main image */}
       <div className="bg-soft rounded-xl overflow-hidden aspect-square flex items-center justify-center mb-3">
         <img
-          src={list[active]}
+          src={resolveImageUrl(list[active])}
           alt={alt}
           className="max-h-full max-w-full object-contain p-6"
         />
@@ -27,11 +28,14 @@ export default function ProductGallery({ images, alt }: Props) {
             <button
               key={i}
               onClick={() => setActive(i)}
-              className={`aspect-square rounded-lg overflow-hidden border-2 transition ${
-                i === active ? "border-brand" : "border-gray-100 hover:border-gray-300"
-              }`}
+              className={`aspect-square rounded-lg overflow-hidden border-2 transition ${i === active ? "border-brand" : "border-gray-100 hover:border-gray-300"
+                }`}
             >
-              <img src={img} alt="" className="w-full h-full object-cover" />
+              <img
+                src={resolveImageUrl(img)}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>

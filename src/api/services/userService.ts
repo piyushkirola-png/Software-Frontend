@@ -1,10 +1,22 @@
-import { apiGet, apiPost, apiPut, apiClient, ApiResponse } from "../../lib/api-client";
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiClient,
+  ApiResponse,
+} from "../../lib/api-client";
 import { User } from "../../types/user";
 
 export interface UpdateProfileRequest {
   name?: string;
   phone?: string;
   avatarUrl?: string;
+  gender?: string;
+  currentAddress?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
 }
 
 export interface ChangePasswordRequest {
@@ -36,7 +48,7 @@ export const userService = {
     const res = await apiClient.post<ApiResponse<User>>(
       "/users/me/avatar",
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return res.data.data;
   },

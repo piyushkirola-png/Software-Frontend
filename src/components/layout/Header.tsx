@@ -13,7 +13,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAuthContext } from "../../lib/AuthContext";
 import { useCartCount } from "../../api/queries/useCart";
-import CartDrawer from "../cart/CartDrawer";
 
 const navItems = [
   { label: "WINDOWS", to: "/products/category/windows", icon: "/variant/window1.png" },
@@ -30,7 +29,6 @@ export default function Header() {
   const { isAuthenticated, user, logout } = useAuthContext();
   const { data: cartCount = 0 } = useCartCount();
 
-  const [cartOpen, setCartOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -82,7 +80,6 @@ export default function Header() {
       >
         {/* Top row */}
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4 md:gap-6">
-          {/* Mobile menu toggle */}
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden w-9 h-9 rounded-lg hover:bg-soft flex items-center justify-center shrink-0"
@@ -91,7 +88,6 @@ export default function Header() {
             <Menu size={20} className="text-navy" />
           </button>
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
               src="/assets/logo.png"
@@ -105,7 +101,6 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Search */}
           <div className="flex-1 relative min-w-0">
             <Search
               size={18}
@@ -124,7 +119,6 @@ export default function Header() {
             />
           </div>
 
-          {/* Secure badge */}
           <div className="hidden xl:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2">
             <ShieldCheck size={16} className="text-success" />
             <span className="text-[10px] font-bold text-muted leading-tight">
@@ -134,7 +128,6 @@ export default function Header() {
             </span>
           </div>
 
-          {/* Phone */}
           <div className="hidden lg:flex items-center gap-2">
             <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white">
               <Phone size={16} />
@@ -197,9 +190,9 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Cart */}
-          <button
-            onClick={() => setCartOpen(true)}
+          {/* Cart — navigates to /cart */}
+          <Link
+            to="/cart"
             className="relative flex items-center gap-1 text-sm font-semibold text-navy hover:text-brand shrink-0 transition-colors"
           >
             <ShoppingCart size={18} />
@@ -209,7 +202,7 @@ export default function Header() {
                 {cartCount > 9 ? "9+" : cartCount}
               </span>
             )}
-          </button>
+          </Link>
         </div>
 
         {/* Desktop nav */}
@@ -308,8 +301,6 @@ export default function Header() {
           </div>
         </div>
       )}
-
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   );
 }

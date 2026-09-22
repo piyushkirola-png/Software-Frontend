@@ -37,4 +37,6 @@ export interface CheckoutRequest {
   addressId: number;
   couponCode?: string;
   gateway?: string;
+  gstNumber?: string;
+  notes?: string;
 }
