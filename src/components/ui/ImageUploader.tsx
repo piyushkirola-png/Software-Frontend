@@ -1,12 +1,17 @@
 import { useRef, useState } from "react";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
-import { uploadProductImage, resolveImageUrl } from "../../lib/upload";
+import {
+    uploadProductImage,
+    uploadCategoryImage,
+    resolveImageUrl,
+} from "../../lib/upload";
 
 interface Props {
     value?: string | null;
     onChange: (url: string) => void;
     label?: string;
     className?: string;
+    endpoint?: "product" | "category";
 }
 
 export default function ImageUploader({
@@ -14,6 +19,7 @@ export default function ImageUploader({
     onChange,
     label = "Image",
     className = "",
+    endpoint = "product",
 }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
@@ -34,7 +40,11 @@ export default function ImageUploader({
         setUploading(true);
         setProgress(0);
         try {
-            const url = await uploadProductImage(file, setProgress);
+            const uploader =
+                endpoint === "category"
+                    ? uploadCategoryImage
+                    : uploadProductImage;
+            const url = await uploader(file, setProgress);
             onChange(url);
         } catch (e: any) {
             setError(e?.message || "Upload failed");
@@ -78,7 +88,11 @@ export default function ImageUploader({
                         type="text"
                         value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="/uploads/products/..."
+                        placeholder={
+                            endpoint === "category"
+                                ? "/uploads/categories/..."
+                                : "/uploads/products/..."
+                        }
                         className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
                     />
 

@@ -11,6 +11,7 @@ import { Product, PagedResponse } from "../../types/product";
 import { Order } from "../../types/order";
 import { User } from "../../types/user";
 import { Review } from "../../types/review";
+import { Payment } from "../../types/payment";
 
 // ================== Dashboard ==================
 export interface DashboardStats {
@@ -356,11 +357,13 @@ export const adminService = {
     status?: string,
     productId?: number,
     variantId?: number,
+    search?: string,
   ): Promise<PagedResponse<AdminKey>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
     if (productId) params.productId = productId;
     if (variantId) params.variantId = variantId;
+    if (search && search.trim()) params.search = search.trim();
     return apiGet<PagedResponse<AdminKey>>("/admin/keys", params);
   },
 
@@ -376,6 +379,25 @@ export const adminService = {
     notes?: string;
   }): Promise<AdminKey> {
     return apiPost<AdminKey>("/admin/keys", data);
+  },
+
+  // Payments
+  async getAllPayments(
+    page = 0,
+    size = 20,
+    status?: string,
+    gateway?: string,
+    search?: string,
+  ): Promise<PagedResponse<Payment>> {
+    const params: Record<string, unknown> = { page, size };
+    if (status) params.status = status;
+    if (gateway) params.gateway = gateway;
+    if (search && search.trim()) params.search = search.trim();
+    return apiGet<PagedResponse<Payment>>("/admin/payments", params);
+  },
+
+  async getPayment(id: number): Promise<Payment> {
+    return apiGet<Payment>(`/admin/payments/${id}`);
   },
 
   async bulkUploadKeys(

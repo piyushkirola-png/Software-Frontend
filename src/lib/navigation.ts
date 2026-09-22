@@ -10,7 +10,7 @@ import {
   Settings,
   User as UserIcon,
   Download,
-  MapPin,
+  CreditCard,
   Lock,
   FolderTree,
 } from "lucide-react";
@@ -36,6 +36,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Products", to: "/admin/products", icon: Package },
   { label: "Coupons", to: "/admin/coupons", icon: Tag },
   { label: "Orders", to: "/admin/orders", icon: ShoppingBag },
+  { label: "Payments", to: "/admin/payments", icon: CreditCard },
   { label: "License Keys", to: "/admin/keys", icon: Key },
   { label: "Users", to: "/admin/users", icon: Users },
   { label: "Reviews", to: "/admin/reviews", icon: Star },

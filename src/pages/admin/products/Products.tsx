@@ -765,23 +765,12 @@ export default function AdminProducts() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1">
             <ImageUploader
               label="Thumbnail"
               value={form.thumbnailUrl || ""}
               onChange={(url) => update_("thumbnailUrl", url)}
             />
-            <div>
-              <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
-                Download Path
-              </label>
-              <input
-                value={form.downloadFilePath || ""}
-                onChange={(e) => update_("downloadFilePath", e.target.value)}
-                placeholder="/software/windows11pro.zip"
-                className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
-              />
-            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2.5">
@@ -905,80 +894,84 @@ export default function AdminProducts() {
             </Button>
           </div>
         </div>
-      </Modal>
+      </Modal >
 
       {/* ============ DELETE CONFIRM DIALOG ============ */}
-      {createPortal(
-        <AnimatePresence>
-          {confirmState.open && confirmState.product && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-              onClick={() => setConfirmState({ open: false, product: null })}
-            >
+      {
+        createPortal(
+          <AnimatePresence>
+            {confirmState.open && confirmState.product && (
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                onClick={() => setConfirmState({ open: false, product: null })}
               >
-                <h3 className="text-sm font-bold text-navy mb-1">
-                  Delete {confirmState.product.title}?
-                </h3>
-                <p className="text-xs text-muted mb-5">
-                  This will permanently remove the product. Cannot be undone.
-                </p>
-                <div className="flex gap-2.5">
-                  <button
-                    onClick={() =>
-                      setConfirmState({ open: false, product: null })
-                    }
-                    disabled={del.isPending}
-                    className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDeleteConfirm}
-                    disabled={del.isPending}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-60"
-                  >
-                    {del.isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      "Delete"
-                    )}
-                  </button>
-                </div>
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl"
+                >
+                  <h3 className="text-sm font-bold text-navy mb-1">
+                    Delete {confirmState.product.title}?
+                  </h3>
+                  <p className="text-xs text-muted mb-5">
+                    This will permanently remove the product. Cannot be undone.
+                  </p>
+                  <div className="flex gap-2.5">
+                    <button
+                      onClick={() =>
+                        setConfirmState({ open: false, product: null })
+                      }
+                      disabled={del.isPending}
+                      className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteConfirm}
+                      disabled={del.isPending}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-60"
+                    >
+                      {del.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        "Delete"
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+            )}
+          </AnimatePresence>,
+          document.body
+        )
+      }
 
       {/* ============ TOAST ============ */}
-      {createPortal(
-        <AnimatePresence>
-          {toast && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, x: 20 }}
-              animate={{ opacity: 1, y: 0, x: 0 }}
-              exit={{ opacity: 0, y: -20, x: 20 }}
-              className="fixed top-6 right-6 z-[9999] flex items-center gap-3 bg-white border border-success/20 shadow-xl rounded-lg px-3.5 py-2.5 max-w-xs"
-            >
-              <div className="p-1 rounded bg-success/10">
-                <CheckCircle className="h-3.5 w-3.5 text-success" />
-              </div>
-              <span className="text-xs font-medium text-navy">{toast}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
+      {
+        createPortal(
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: -20, x: 20 }}
+                animate={{ opacity: 1, y: 0, x: 0 }}
+                exit={{ opacity: 0, y: -20, x: 20 }}
+                className="fixed top-6 right-6 z-[9999] flex items-center gap-3 bg-white border border-success/20 shadow-xl rounded-lg px-3.5 py-2.5 max-w-xs"
+              >
+                <div className="p-1 rounded bg-success/10">
+                  <CheckCircle className="h-3.5 w-3.5 text-success" />
+                </div>
+                <span className="text-xs font-medium text-navy">{toast}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )
+      }
+    </div >
   );
 }

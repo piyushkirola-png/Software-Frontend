@@ -18,10 +18,12 @@ export interface Payment {
   gateway: string;
   gatewayOrderId?: string | null;
   gatewayPaymentId?: string | null;
+  paymentLink?: string | null;
   amount: number;
   currency: string;
-  status: "INITIATED" | "SUCCESS" | "FAILED";
+  status: "SUCCESS" | "FAILED" | "PENDING";
   failureReason?: string | null;
+  rawResponse?: string | null;
   createdAt: string;
   updatedAt: string;
 }

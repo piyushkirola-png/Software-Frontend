@@ -24,6 +24,8 @@ import {
 import { CategoryRequest } from "../../../api/services/adminService";
 import { Category } from "../../../types/category";
 import { getErrorMessage } from "../../../lib/api-client";
+import ImageUploader from "../../../components/ui/ImageUploader";
+import { resolveImageUrl } from "../../../lib/upload";
 
 const EMPTY: CategoryRequest = {
   name: "",
@@ -32,12 +34,6 @@ const EMPTY: CategoryRequest = {
   iconUrl: "",
   displayOrder: 0,
   isActive: true,
-};
-
-const resolveUrl = (url?: string | null) => {
-  if (!url) return "";
-  if (url.startsWith("http") || url.startsWith("/")) return url;
-  return `/${url}`;
 };
 
 export default function AdminCategories() {
@@ -201,7 +197,7 @@ export default function AdminCategories() {
                             <div className="w-10 h-10 bg-soft rounded-lg overflow-hidden flex items-center justify-center shrink-0">
                               {boxUrl ? (
                                 <img
-                                  src={resolveUrl(boxUrl)}
+                                  src={resolveImageUrl(boxUrl)}
                                   alt=""
                                   className="max-h-full max-w-full object-contain p-0.5"
                                   onError={(e) => {
@@ -312,19 +308,19 @@ export default function AdminCategories() {
             />
           </div>
 
-          {/* Row 3: Image URL + Icon URL */}
+          {/* Row 3: Image + Icon uploaders */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Image URL"
+            <ImageUploader
+              label="Category Image"
+              endpoint="category"
               value={form.imageUrl || ""}
-              onChange={(e) => update_("imageUrl", e.target.value)}
-              placeholder="/categories/windows.png"
+              onChange={(url) => update_("imageUrl", url)}
             />
-            <Input
-              label="Icon URL"
+            <ImageUploader
+              label="Category Icon"
+              endpoint="category"
               value={form.iconUrl || ""}
-              onChange={(e) => update_("iconUrl", e.target.value)}
-              placeholder="/variant/window1.png"
+              onChange={(url) => update_("iconUrl", url)}
             />
           </div>
 
@@ -345,8 +341,8 @@ export default function AdminCategories() {
                 type="button"
                 onClick={() => update_("isActive", !form.isActive)}
                 className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border transition w-full ${form.isActive
-                    ? "border-success/30 bg-success/5"
-                    : "border-gray-200 bg-gray-50"
+                  ? "border-success/30 bg-success/5"
+                  : "border-gray-200 bg-gray-50"
                   }`}
               >
                 <span

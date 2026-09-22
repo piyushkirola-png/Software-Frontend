@@ -6,7 +6,6 @@ const BACKEND_BASE = (
 
 /**
  * Upload a product image to the backend.
- * Backend saves to uploads/products/{uuid}.ext and returns "/uploads/products/{uuid}.ext".
  */
 export async function uploadProductImage(
   file: File,

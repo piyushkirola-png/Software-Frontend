@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { adminService } from "../services/adminService";
 
-// Dashboard
 export function useDashboardStats() {
   return useQuery({
     queryKey: ["admin", "dashboard-stats"],
@@ -31,7 +30,6 @@ export function useGstReport(fromDate?: string, toDate?: string) {
   });
 }
 
-// Categories
 export function useAdminCategories() {
   return useQuery({
     queryKey: ["admin", "categories"],
@@ -39,12 +37,11 @@ export function useAdminCategories() {
   });
 }
 
-// Products
 export function useAdminProducts(
   page = 0,
   size = 10,
   status?: string,
-  categoryId?: number
+  categoryId?: number,
 ) {
   return useQuery({
     queryKey: ["admin", "products", page, size, status, categoryId],
@@ -52,7 +49,6 @@ export function useAdminProducts(
   });
 }
 
-// Coupons
 export function useAdminCoupons(page = 0, size = 20, status?: string) {
   return useQuery({
     queryKey: ["admin", "coupons", page, size, status],
@@ -60,12 +56,11 @@ export function useAdminCoupons(page = 0, size = 20, status?: string) {
   });
 }
 
-// Orders
 export function useAdminOrders(
   page = 0,
   size = 20,
   status?: string,
-  search?: string
+  search?: string,
 ) {
   return useQuery({
     queryKey: ["admin", "orders", page, size, status, search],
@@ -73,7 +68,6 @@ export function useAdminOrders(
   });
 }
 
-// Users
 export function useAdminUsers(page = 0, size = 20, search?: string) {
   return useQuery({
     queryKey: ["admin", "users", page, size, search],
@@ -81,7 +75,6 @@ export function useAdminUsers(page = 0, size = 20, search?: string) {
   });
 }
 
-// Reviews
 export function useAdminReviews(page = 0, size = 10, status?: string) {
   return useQuery({
     queryKey: ["admin", "reviews", page, size, status],
@@ -89,17 +82,27 @@ export function useAdminReviews(page = 0, size = 10, status?: string) {
   });
 }
 
-// Keys
 export function useAdminKeys(
   page = 0,
-  size = 10,
+  size = 50,
   status?: string,
   productId?: number,
-  variantId?: number
+  variantId?: number,
+  search?: string,
 ) {
   return useQuery({
-    queryKey: ["admin", "keys", page, size, status, productId, variantId],
-    queryFn: () => adminService.getKeys(page, size, status, productId, variantId),
+    queryKey: [
+      "admin",
+      "keys",
+      page,
+      size,
+      status,
+      productId,
+      variantId,
+      search,
+    ],
+    queryFn: () =>
+      adminService.getKeys(page, size, status, productId, variantId, search),
   });
 }
 
@@ -107,5 +110,19 @@ export function useAdminKeyStock() {
   return useQuery({
     queryKey: ["admin", "key-stock"],
     queryFn: () => adminService.getKeyStock(),
+  });
+}
+
+export function useAdminPayments(
+  page = 0,
+  size = 20,
+  status?: string,
+  gateway?: string,
+  search?: string,
+) {
+  return useQuery({
+    queryKey: ["admin", "payments", page, size, status, gateway, search],
+    queryFn: () =>
+      adminService.getAllPayments(page, size, status, gateway, search),
   });
 }
