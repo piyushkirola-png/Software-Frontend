@@ -62,6 +62,10 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     setAddError("");
+    if ((product.availableKeys ?? 0) <= 0) {
+      setAddError("This product is currently out of stock.");
+      return;
+    }
     if (!isAuthenticated) {
       nav("/login", { state: { from: `/product/${slug}` } });
       return;
@@ -85,6 +89,7 @@ export default function ProductDetail() {
 
   const price = product.price;
   const mrp = product.mrp;
+  const outOfStock = (product.availableKeys ?? 0) <= 0;
 
   return (
     <div className="bg-white min-h-screen">
@@ -213,9 +218,12 @@ export default function ProductDetail() {
                 size="lg"
                 loading={adding}
                 onClick={handleAddToCart}
+                disabled={outOfStock}
                 variant={added ? "outline" : "primary"}
               >
-                {added ? (
+                {outOfStock ? (
+                  <>Out of Stock</>
+                ) : added ? (
                   <>
                     <Check size={18} /> Added to Cart
                   </>
@@ -265,12 +273,12 @@ export default function ProductDetail() {
                   {product.activationType}
                 </div>
               )}
-              {product.stockQuantity !== undefined && (
+              {product.availableKeys !== undefined && (
                 <div>
                   <b className="text-navy">Availability:</b>{" "}
-                  {product.stockQuantity > 0 ? (
+                  {product.availableKeys > 0 ? (
                     <span className="text-success font-semibold">
-                      In Stock ({product.stockQuantity})
+                      In Stock ({product.availableKeys})
                     </span>
                   ) : (
                     <span className="text-danger font-semibold">
@@ -290,21 +298,19 @@ export default function ProductDetail() {
           <div className="bg-white rounded-2xl border border-gray-100 p-2 flex gap-1 mb-5 max-w-md">
             <button
               onClick={() => setTab("description")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
-                tab === "description"
-                  ? "bg-brand text-white shadow-md"
-                  : "text-navy hover:bg-soft"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${tab === "description"
+                ? "bg-brand text-white shadow-md"
+                : "text-navy hover:bg-soft"
+                }`}
             >
               <FileText size={14} /> Description
             </button>
             <button
               onClick={() => setTab("reviews")}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
-                tab === "reviews"
-                  ? "bg-brand text-white shadow-md"
-                  : "text-navy hover:bg-soft"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${tab === "reviews"
+                ? "bg-brand text-white shadow-md"
+                : "text-navy hover:bg-soft"
+                }`}
             >
               <MessageSquare size={14} /> Reviews
               {product.ratingCount !== undefined && product.ratingCount > 0 && (

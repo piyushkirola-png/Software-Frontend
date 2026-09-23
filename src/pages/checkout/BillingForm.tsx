@@ -172,19 +172,6 @@ const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
             </div>
           </div>
 
-          {/* GST */}
-          <div>
-            <label className={labelCls}>GST Number (optional)</label>
-            <input
-              type="text"
-              value={gstNumber}
-              onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
-              placeholder="e.g. 06AAAAA0000A1Z5"
-              className={inputCls}
-              maxLength={15}
-            />
-          </div>
-
           {/* Country */}
           <div>
             <label className={labelCls}>

@@ -4,6 +4,7 @@ export interface ProductVariant {
   mrp?: number | null;
   price: number;
   stockQuantity?: number;
+  availableKeys?: number;
   isActive: boolean;
 }
 
@@ -26,6 +27,7 @@ export interface Product {
   activationType?: string | null;
   displayOrder?: number;
   hasVariants: boolean;
+  availableKeys?: number;
   stockQuantity?: number;
   isFeatured: boolean;
   isActive: boolean;

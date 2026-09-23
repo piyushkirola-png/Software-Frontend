@@ -15,6 +15,7 @@ export type ProductCardType = {
   price: number;
   hasVariants: boolean;
   sale?: boolean;
+  availableKeys?: number;
 };
 
 interface Props {
@@ -31,6 +32,8 @@ export default function ProductCard({ product }: Props) {
   const discount = product.mrp
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
     : 0;
+
+  const outOfStock = (product.availableKeys ?? 0) <= 0;
 
   const handleAdd = async () => {
     if (!isAuthenticated) {
@@ -98,14 +101,17 @@ export default function ProductCard({ product }: Props) {
         <div className="mt-auto pt-4">
           <button
             onClick={handleAdd}
-            disabled={addToCart.isPending}
-            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${
-              added
-                ? "bg-success text-white"
-                : "bg-brand hover:bg-brand-dark text-white"
-            } disabled:opacity-60`}
+            disabled={addToCart.isPending || outOfStock}
+            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${outOfStock
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : added
+                  ? "bg-success text-white"
+                  : "bg-brand hover:bg-brand-dark text-white"
+              } disabled:opacity-60`}
           >
-            {addToCart.isPending ? (
+            {outOfStock ? (
+              <>OUT OF STOCK</>
+            ) : addToCart.isPending ? (
               <Loader2 size={16} className="animate-spin" />
             ) : added ? (
               <>

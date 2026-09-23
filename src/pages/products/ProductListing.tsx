@@ -66,6 +66,7 @@ function ProductListingInner() {
     price: p.price,
     hasVariants: p.hasVariants,
     sale: !!p.mrp && p.mrp > p.price,
+    availableKeys: p.availableKeys,
   });
 
   const modalVariants: Variant[] =
