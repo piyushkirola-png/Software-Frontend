@@ -15,8 +15,12 @@ import { useMyDownloads } from "../../../api/queries/useDownloads";
 import { resolveImageUrl } from "../../../lib/upload";
 
 export default function Downloads() {
-  const { data: downloads = [], isLoading, isError, refetch } =
-    useMyDownloads();
+  const {
+    data: downloads = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useMyDownloads();
 
   return (
     <div className="space-y-5">
@@ -26,7 +30,8 @@ export default function Downloads() {
           My Downloads
         </h1>
         <p className="text-muted mt-1 text-sm">
-          {downloads.length} product{downloads.length !== 1 ? "s" : ""} purchased
+          {downloads.length} product{downloads.length !== 1 ? "s" : ""}{" "}
+          purchased
         </p>
       </div>
 

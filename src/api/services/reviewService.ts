@@ -10,7 +10,7 @@ export const reviewService = {
   async getForProduct(
     productId: number,
     page = 0,
-    size = 10
+    size = 10,
   ): Promise<PagedResponse<Review>> {
     return apiGet<PagedResponse<Review>>(`/reviews/product/${productId}`, {
       page,

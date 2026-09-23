@@ -111,9 +111,11 @@ export default function ProductDetail() {
       <div className="max-w-7xl mx-auto px-4 pb-12 grid md:grid-cols-2 gap-10">
         <Reveal>
           <ProductGallery
-            images={[product.thumbnailUrl, ...(product.images || [])].filter(
-              Boolean,
-            ) as string[]}
+            images={
+              [product.thumbnailUrl, ...(product.images || [])].filter(
+                Boolean,
+              ) as string[]
+            }
             alt={product.title}
           />
         </Reveal>
@@ -225,9 +227,7 @@ export default function ProductDetail() {
               </Button>
             </div>
 
-            {addError && (
-              <p className="text-xs text-danger mt-2">{addError}</p>
-            )}
+            {addError && <p className="text-xs text-danger mt-2">{addError}</p>}
 
             {/* Trust badges */}
             <div className="mt-8 grid grid-cols-3 gap-3">

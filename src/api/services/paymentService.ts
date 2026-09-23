@@ -4,7 +4,7 @@ import { Payment, PaymentInitiateResponse } from "../../types/payment";
 export const paymentService = {
   async initiate(
     orderId: number,
-    gateway: string
+    gateway: string,
   ): Promise<PaymentInitiateResponse> {
     return apiPost<PaymentInitiateResponse>("/payments/initiate", {
       orderId,

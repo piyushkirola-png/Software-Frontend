@@ -53,7 +53,9 @@ export default function CartDrawer({ open, onClose }: Props) {
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5">
           {isLoading && (
-            <div className="py-10 text-center text-muted text-sm">Loading...</div>
+            <div className="py-10 text-center text-muted text-sm">
+              Loading...
+            </div>
           )}
 
           {!isLoading && (!cart || cart.items.length === 0) && (

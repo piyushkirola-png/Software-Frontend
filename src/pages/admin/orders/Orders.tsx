@@ -54,7 +54,7 @@ export default function AdminOrders() {
     page,
     10,
     status !== "ALL" ? status : undefined,
-    search || undefined
+    search || undefined,
   );
 
   const updateStatus = useUpdateOrderStatus();
@@ -130,7 +130,7 @@ export default function AdminOrders() {
 
       if (pq) {
         const match = (o.items || []).some((it) =>
-          (it.productTitle || "").toLowerCase().includes(pq)
+          (it.productTitle || "").toLowerCase().includes(pq),
         );
         if (!match) return false;
       }
@@ -262,10 +262,11 @@ export default function AdminOrders() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
+                hasFilters
                   ? "border-brand/40 bg-brand/5 text-brand"
                   : "border-gray-200 text-navy hover:bg-gray-50"
-                }`}
+              }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -596,7 +597,8 @@ export default function AdminOrders() {
       {!isLoading && !isError && orders.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
-            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            Showing{" "}
+            <span className="font-semibold text-navy">{rangeStart}</span>
             {" – "}
             <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
             <span className="font-semibold text-navy">{totalElements}</span>
@@ -777,10 +779,11 @@ export default function AdminOrders() {
                   <button
                     onClick={handleStatusConfirm}
                     disabled={updateStatus.isPending}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.newStatus === "FAILED"
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${
+                      confirmState.newStatus === "FAILED"
                         ? "bg-red-600 hover:bg-red-700"
                         : "bg-brand hover:bg-brand-dark"
-                      }`}
+                    }`}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -793,7 +796,7 @@ export default function AdminOrders() {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
 
       {/* TOAST */}
@@ -813,7 +816,7 @@ export default function AdminOrders() {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
     </div>
   );

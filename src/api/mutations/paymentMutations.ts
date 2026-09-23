@@ -10,6 +10,7 @@ export function useInitiatePayment() {
 
 export function useSimulateSuccess() {
   return useMutation({
-    mutationFn: (paymentId: number) => paymentService.simulateSuccess(paymentId),
+    mutationFn: (paymentId: number) =>
+      paymentService.simulateSuccess(paymentId),
   });
 }

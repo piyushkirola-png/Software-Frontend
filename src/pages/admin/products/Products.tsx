@@ -74,7 +74,9 @@ export default function AdminProducts() {
   // ── APPLIED filters ─────────────────────────────
   const [filterName, setFilterName] = useState("");
   const [filterCategory, setFilterCategory] = useState<number | "ALL">("ALL");
-  const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "active" | "inactive"
+  >("ALL");
   const [filterLicense, setFilterLicense] = useState<string>("ALL");
   const [filterPriceMin, setFilterPriceMin] = useState<string>("");
   const [filterPriceMax, setFilterPriceMax] = useState<string>("");
@@ -82,7 +84,9 @@ export default function AdminProducts() {
   // ── DRAFT filters (popover) ─────────────────────
   const [draftName, setDraftName] = useState("");
   const [draftCategory, setDraftCategory] = useState<number | "ALL">("ALL");
-  const [draftStatus, setDraftStatus] = useState<"ALL" | "active" | "inactive">("ALL");
+  const [draftStatus, setDraftStatus] = useState<"ALL" | "active" | "inactive">(
+    "ALL",
+  );
   const [draftLicense, setDraftLicense] = useState<string>("ALL");
   const [draftPriceMin, setDraftPriceMin] = useState<string>("");
   const [draftPriceMax, setDraftPriceMax] = useState<string>("");
@@ -134,10 +138,12 @@ export default function AdminProducts() {
 
     return products.filter((p) => {
       if (q && !p.title.toLowerCase().includes(q)) return false;
-      if (filterCategory !== "ALL" && p.categoryId !== filterCategory) return false;
+      if (filterCategory !== "ALL" && p.categoryId !== filterCategory)
+        return false;
       if (filterStatus === "active" && !p.isActive) return false;
       if (filterStatus === "inactive" && p.isActive) return false;
-      if (filterLicense !== "ALL" && p.licenseType !== filterLicense) return false;
+      if (filterLicense !== "ALL" && p.licenseType !== filterLicense)
+        return false;
       if (min !== null && p.price < min) return false;
       if (max !== null && p.price > max) return false;
       return true;
@@ -313,10 +319,11 @@ export default function AdminProducts() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                ? "border-brand/40 bg-brand/5 text-brand"
-                : "border-gray-200 text-navy hover:bg-gray-50"
-                }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
+                hasFilters
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
+              }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -367,7 +374,7 @@ export default function AdminProducts() {
                         setDraftCategory(
                           e.target.value === "ALL"
                             ? "ALL"
-                            : Number(e.target.value)
+                            : Number(e.target.value),
                         )
                       }
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
@@ -623,7 +630,8 @@ export default function AdminProducts() {
       {filtered.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
-            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            Showing{" "}
+            <span className="font-semibold text-navy">{rangeStart}</span>
             {" – "}
             <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
             <span className="font-semibold text-navy">{totalElements}</span>
@@ -729,7 +737,7 @@ export default function AdminProducts() {
                         ? Number(e.target.value)
                         : f.key === "mrp"
                           ? undefined
-                          : 0
+                          : 0,
                     )
                   }
                   placeholder={f.placeholder}
@@ -815,7 +823,9 @@ export default function AdminProducts() {
               <input
                 type="number"
                 value={form.displayOrder ?? 0}
-                onChange={(e) => update_("displayOrder", Number(e.target.value))}
+                onChange={(e) =>
+                  update_("displayOrder", Number(e.target.value))
+                }
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
@@ -851,21 +861,25 @@ export default function AdminProducts() {
                   key={t.key}
                   type="button"
                   onClick={() => update_(t.key as any, !val)}
-                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${val ? t.borderColor : "border-gray-200 bg-gray-50"
-                    }`}
+                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${
+                    val ? t.borderColor : "border-gray-200 bg-gray-50"
+                  }`}
                 >
                   <span
-                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${val ? t.activeColor : "bg-gray-300"
-                      }`}
+                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${
+                      val ? t.activeColor : "bg-gray-300"
+                    }`}
                   >
                     <span
-                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${val ? "translate-x-[12px]" : "translate-x-0.5"
-                        }`}
+                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${
+                        val ? "translate-x-[12px]" : "translate-x-0.5"
+                      }`}
                     />
                   </span>
                   <span
-                    className={`text-[10px] font-bold ${val ? t.textColor : "text-muted"
-                      }`}
+                    className={`text-[10px] font-bold ${
+                      val ? t.textColor : "text-muted"
+                    }`}
                   >
                     {t.label}
                   </span>
@@ -894,84 +908,80 @@ export default function AdminProducts() {
             </Button>
           </div>
         </div>
-      </Modal >
+      </Modal>
 
       {/* ============ DELETE CONFIRM DIALOG ============ */}
-      {
-        createPortal(
-          <AnimatePresence>
-            {confirmState.open && confirmState.product && (
+      {createPortal(
+        <AnimatePresence>
+          {confirmState.open && confirmState.product && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+              onClick={() => setConfirmState({ open: false, product: null })}
+            >
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-                onClick={() => setConfirmState({ open: false, product: null })}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl"
               >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl"
-                >
-                  <h3 className="text-sm font-bold text-navy mb-1">
-                    Delete {confirmState.product.title}?
-                  </h3>
-                  <p className="text-xs text-muted mb-5">
-                    This will permanently remove the product. Cannot be undone.
-                  </p>
-                  <div className="flex gap-2.5">
-                    <button
-                      onClick={() =>
-                        setConfirmState({ open: false, product: null })
-                      }
-                      disabled={del.isPending}
-                      className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDeleteConfirm}
-                      disabled={del.isPending}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-60"
-                    >
-                      {del.isPending ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        "Delete"
-                      )}
-                    </button>
-                  </div>
-                </motion.div>
+                <h3 className="text-sm font-bold text-navy mb-1">
+                  Delete {confirmState.product.title}?
+                </h3>
+                <p className="text-xs text-muted mb-5">
+                  This will permanently remove the product. Cannot be undone.
+                </p>
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={() =>
+                      setConfirmState({ open: false, product: null })
+                    }
+                    disabled={del.isPending}
+                    className="flex-1 rounded-lg px-4 py-2 border border-gray-200 text-navy text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    disabled={del.isPending}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {del.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
               </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )
-      }
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
 
       {/* ============ TOAST ============ */}
-      {
-        createPortal(
-          <AnimatePresence>
-            {toast && (
-              <motion.div
-                initial={{ opacity: 0, y: -20, x: 20 }}
-                animate={{ opacity: 1, y: 0, x: 0 }}
-                exit={{ opacity: 0, y: -20, x: 20 }}
-                className="fixed top-6 right-6 z-[9999] flex items-center gap-3 bg-white border border-success/20 shadow-xl rounded-lg px-3.5 py-2.5 max-w-xs"
-              >
-                <div className="p-1 rounded bg-success/10">
-                  <CheckCircle className="h-3.5 w-3.5 text-success" />
-                </div>
-                <span className="text-xs font-medium text-navy">{toast}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )
-      }
-    </div >
+      {createPortal(
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, x: 20 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, y: -20, x: 20 }}
+              className="fixed top-6 right-6 z-[9999] flex items-center gap-3 bg-white border border-success/20 shadow-xl rounded-lg px-3.5 py-2.5 max-w-xs"
+            >
+              <div className="p-1 rounded bg-success/10">
+                <CheckCircle className="h-3.5 w-3.5 text-success" />
+              </div>
+              <span className="text-xs font-medium text-navy">{toast}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+    </div>
   );
 }

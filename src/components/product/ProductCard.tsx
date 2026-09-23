@@ -99,10 +99,11 @@ export default function ProductCard({ product }: Props) {
           <button
             onClick={handleAdd}
             disabled={addToCart.isPending}
-            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${added
+            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${
+              added
                 ? "bg-success text-white"
                 : "bg-brand hover:bg-brand-dark text-white"
-              } disabled:opacity-60`}
+            } disabled:opacity-60`}
           >
             {addToCart.isPending ? (
               <Loader2 size={16} className="animate-spin" />

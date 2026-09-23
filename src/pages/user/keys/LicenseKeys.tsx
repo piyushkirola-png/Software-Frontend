@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Key,
-  Copy,
-  CheckCircle,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { Key, Copy, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import Reveal from "../../../components/animations/Reveal";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { useMyOrders } from "../../../api/queries/useOrders";

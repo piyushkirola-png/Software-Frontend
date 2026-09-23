@@ -89,9 +89,7 @@ export default function CollapsibleCoupon({
       ) : (
         <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-navy">
-              Coupon code
-            </span>
+            <span className="text-xs font-semibold text-navy">Coupon code</span>
             <button
               type="button"
               onClick={() => {
@@ -132,9 +130,7 @@ export default function CollapsibleCoupon({
             </button>
           </div>
 
-          {error && (
-            <p className="text-[11px] text-red-600">{error}</p>
-          )}
+          {error && <p className="text-[11px] text-red-600">{error}</p>}
         </div>
       )}
     </div>

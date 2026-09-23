@@ -24,7 +24,11 @@ const SORT_OPTIONS = [
   { value: "rating", label: "Top Rated" },
 ];
 
-export default function ProductFilters({ filters, onChange, totalResults }: Props) {
+export default function ProductFilters({
+  filters,
+  onChange,
+  totalResults,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [priceMin, setPriceMin] = useState(filters.priceMin?.toString() || "");
   const [priceMax, setPriceMax] = useState(filters.priceMax?.toString() || "");
@@ -67,8 +71,9 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
       </button>
 
       <div
-        className={`${open ? "block" : "hidden"
-          } md:block bg-white border border-gray-100 rounded-xl p-5 shadow-card min-h-[600px]`}
+        className={`${
+          open ? "block" : "hidden"
+        } md:block bg-white border border-gray-100 rounded-xl p-5 shadow-card min-h-[600px]`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -142,10 +147,11 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
           <div className="flex flex-col gap-1">
             <Link
               to="/products"
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${!activeSlug
-                ? "bg-brand/10 text-brand font-semibold"
-                : "text-navy hover:bg-gray-50"
-                }`}
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${
+                !activeSlug
+                  ? "bg-brand/10 text-brand font-semibold"
+                  : "text-navy hover:bg-gray-50"
+              }`}
             >
               <span>All Products</span>
               {!activeSlug && <Check size={14} />}
@@ -157,10 +163,11 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
                 <Link
                   key={c.id}
                   to={`/products/category/${c.slug}`}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${isActive
-                    ? "bg-brand/10 text-brand font-semibold"
-                    : "text-navy hover:bg-gray-50"
-                    }`}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${
+                    isActive
+                      ? "bg-brand/10 text-brand font-semibold"
+                      : "text-navy hover:bg-gray-50"
+                  }`}
                 >
                   <span>{c.name}</span>
                   {isActive && <Check size={14} />}

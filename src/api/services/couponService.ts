@@ -13,9 +13,8 @@ export interface CouponResponse {
 
 export const couponService = {
   async validate(code: string, subtotal: number): Promise<CouponResponse> {
-    return apiPost<CouponResponse>(
-      `/coupons/validate?subtotal=${subtotal}`,
-      { code }
-    );
+    return apiPost<CouponResponse>(`/coupons/validate?subtotal=${subtotal}`, {
+      code,
+    });
   },
 };

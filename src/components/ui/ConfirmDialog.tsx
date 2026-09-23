@@ -30,10 +30,20 @@ export default function ConfirmDialog({
       <div className="space-y-4">
         <div className="text-sm text-muted leading-relaxed">{message}</div>
         <div className="flex gap-2 pt-2">
-          <Button onClick={onConfirm} loading={loading} fullWidth variant={danger ? "danger" : "primary"}>
+          <Button
+            onClick={onConfirm}
+            loading={loading}
+            fullWidth
+            variant={danger ? "danger" : "primary"}
+          >
             {confirmLabel}
           </Button>
-          <Button onClick={onCancel} fullWidth variant="outline" disabled={loading}>
+          <Button
+            onClick={onCancel}
+            fullWidth
+            variant="outline"
+            disabled={loading}
+          >
             {cancelLabel}
           </Button>
         </div>

@@ -1,4 +1,11 @@
-import { Zap, Shield, Headphones, RotateCcw, BadgeCheck, Wallet } from "lucide-react";
+import {
+  Zap,
+  Shield,
+  Headphones,
+  RotateCcw,
+  BadgeCheck,
+  Wallet,
+} from "lucide-react";
 import Reveal from "../animations/Reveal";
 
 const features = [

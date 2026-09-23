@@ -110,10 +110,11 @@ export default function ReviewsCarousel() {
                     return (
                       <div
                         key={r.id}
-                        className={`bg-white rounded-2xl p-6 transition-all ${isActive
-                          ? "border-2 border-success shadow-cardHover"
-                          : "border border-gray-100"
-                          }`}
+                        className={`bg-white rounded-2xl p-6 transition-all ${
+                          isActive
+                            ? "border-2 border-success shadow-cardHover"
+                            : "border border-gray-100"
+                        }`}
                       >
                         <div className="flex gap-0.5 mb-4">{renderStars()}</div>
                         <h3 className="font-bold text-navy text-sm mb-2">
@@ -166,8 +167,9 @@ export default function ReviewsCarousel() {
                     key={i}
                     onClick={() => setStart(i)}
                     aria-label={`Go to review set ${i + 1}`}
-                    className={`h-2 rounded-full transition-all ${i === start ? "w-6 bg-success" : "w-2 bg-gray-300"
-                      }`}
+                    className={`h-2 rounded-full transition-all ${
+                      i === start ? "w-6 bg-success" : "w-2 bg-gray-300"
+                    }`}
                   />
                 ))}
               </div>

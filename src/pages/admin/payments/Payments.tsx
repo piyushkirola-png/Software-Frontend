@@ -143,10 +143,11 @@ export default function AdminPayments() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                ? "border-brand/40 bg-brand/5 text-brand"
-                : "border-gray-200 text-navy hover:bg-gray-50"
-                }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
+                hasFilters
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
+              }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -373,7 +374,8 @@ export default function AdminPayments() {
       {!isLoading && !isError && payments.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
-            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            Showing{" "}
+            <span className="font-semibold text-navy">{rangeStart}</span>
             {" – "}
             <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
             <span className="font-semibold text-navy">{totalElements}</span>
@@ -402,7 +404,11 @@ export default function AdminPayments() {
       )}
 
       {/* ============ DETAIL MODAL ============ */}
-      <Modal open={!!viewing} onClose={() => setViewing(null)} maxWidth="max-w-2xl">
+      <Modal
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        maxWidth="max-w-2xl"
+      >
         {viewing && <PaymentDetail payment={viewing} onCopy={setToast} />}
       </Modal>
 
@@ -465,9 +471,7 @@ function PaymentDetail({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-bold text-navy">
-          Payment #{payment.id}
-        </h3>
+        <h3 className="text-lg font-bold text-navy">Payment #{payment.id}</h3>
         <p className="text-xs text-muted mt-0.5">
           {new Date(payment.createdAt).toLocaleString("en-IN")}
         </p>
@@ -584,7 +588,9 @@ function DetailRow({
         {label}
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className={`text-xs text-navy ${mono ? "font-mono" : ""} break-all`}>
+        <span
+          className={`text-xs text-navy ${mono ? "font-mono" : ""} break-all`}
+        >
           {value}
         </span>
         {onCopy && (

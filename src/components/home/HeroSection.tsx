@@ -89,12 +89,7 @@ export default function HeroSection() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        fill="#facc15"
-                        stroke="#facc15"
-                      />
+                      <Star key={i} size={16} fill="#facc15" stroke="#facc15" />
                     ))}
                   </div>
                   <div className="text-sm text-gray-400">
@@ -106,9 +101,7 @@ export default function HeroSection() {
                   <div className="text-6xl font-extrabold text-white mb-2">
                     <Counter to={10} suffix="K+" duration={1500} />
                   </div>
-                  <div className="text-sm text-gray-400">
-                    Happy Customers
-                  </div>
+                  <div className="text-sm text-gray-400">Happy Customers</div>
                 </div>
 
                 <div>

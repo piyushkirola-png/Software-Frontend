@@ -15,10 +15,9 @@ export default function CancellationRefund() {
       <section className="max-w-4xl mx-auto px-4 py-12 space-y-6">
         <Section title="Digital Product Policy">
           <p>
-            All products sold on Softora are digital license keys
-            delivered instantly via email. Because keys are non-returnable
-            once revealed, our refund policy is limited to specific cases
-            described below.
+            All products sold on Softora are digital license keys delivered
+            instantly via email. Because keys are non-returnable once revealed,
+            our refund policy is limited to specific cases described below.
           </p>
         </Section>
 
@@ -54,15 +53,15 @@ export default function CancellationRefund() {
             >
               support@softora.in
             </a>{" "}
-            with your order number and a description of the issue. Our team
-            will respond within 24 hours.
+            with your order number and a description of the issue. Our team will
+            respond within 24 hours.
           </p>
         </Section>
 
         <Section title="Processing Time">
           <p>
-            Approved refunds are processed to the original payment method
-            within 5–7 business days.
+            Approved refunds are processed to the original payment method within
+            5–7 business days.
           </p>
         </Section>
 

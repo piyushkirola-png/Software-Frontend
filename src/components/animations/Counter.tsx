@@ -7,7 +7,12 @@ interface Props {
   className?: string;
 }
 
-export default function Counter({ to, duration = 1500, suffix = "", className = "" }: Props) {
+export default function Counter({
+  to,
+  duration = 1500,
+  suffix = "",
+  className = "",
+}: Props) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {

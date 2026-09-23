@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, PackageX, ChevronRight } from "lucide-react";
-import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
+import ProductCard, {
+  ProductCardType,
+} from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
-import ProductFilters, { FilterState } from "../../components/product/ProductFilters";
+import ProductFilters, {
+  FilterState,
+} from "../../components/product/ProductFilters";
 import Reveal from "../../components/animations/Reveal";
 import Pagination from "../../components/ui/Pagination";
 import { useProductsByCategory } from "../../api/queries/useProducts";
@@ -26,7 +30,7 @@ export default function CategoryListing() {
     PAGE_SIZE,
     filters.sortBy,
     filters.priceMin,
-    filters.priceMax
+    filters.priceMax,
   );
 
   const products = data?.content || [];
@@ -86,10 +90,7 @@ export default function CategoryListing() {
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-[280px_1fr] gap-6">
         <aside className="lg:sticky lg:top-24 h-fit">
-          <ProductFilters
-            filters={filters}
-            onChange={handleFiltersChange}
-          />
+          <ProductFilters filters={filters} onChange={handleFiltersChange} />
         </aside>
 
         <div>
@@ -101,8 +102,10 @@ export default function CategoryListing() {
                   {products.length > 0 ? page * PAGE_SIZE + 1 : 0}
                 </b>
                 –
-                <b className="text-navy">{page * PAGE_SIZE + products.length}</b> of{" "}
-                <b className="text-navy">{totalElements}</b> results
+                <b className="text-navy">
+                  {page * PAGE_SIZE + products.length}
+                </b>{" "}
+                of <b className="text-navy">{totalElements}</b> results
               </p>
             </div>
           )}

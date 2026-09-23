@@ -34,9 +34,7 @@ export default function ShippingDelivery() {
               <Mail size={20} />
             </div>
             <div>
-              <h2 className="font-bold text-navy mb-2">
-                What You'll Receive
-              </h2>
+              <h2 className="font-bold text-navy mb-2">What You'll Receive</h2>
               <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-muted leading-relaxed">
                 <li>Your license key(s)</li>
                 <li>Step-by-step activation instructions</li>

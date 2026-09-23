@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { Navigate, useSearchParams, Link } from "react-router-dom";
 import { Loader2, PackageX, ChevronRight } from "lucide-react";
-import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
+import ProductCard, {
+  ProductCardType,
+} from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
-import ProductFilters, { FilterState } from "../../components/product/ProductFilters";
+import ProductFilters, {
+  FilterState,
+} from "../../components/product/ProductFilters";
 import Reveal from "../../components/animations/Reveal";
 import Pagination from "../../components/ui/Pagination";
 import { useAllProducts } from "../../api/queries/useProducts";
@@ -41,7 +45,7 @@ function ProductListingInner() {
     PAGE_SIZE,
     filters.sortBy,
     filters.priceMin,
-    filters.priceMax
+    filters.priceMax,
   );
 
   const products = data?.content || [];
@@ -100,8 +104,10 @@ function ProductListingInner() {
                   {products.length > 0 ? page * PAGE_SIZE + 1 : 0}
                 </b>
                 –
-                <b className="text-navy">{page * PAGE_SIZE + products.length}</b> of{" "}
-                <b className="text-navy">{totalElements}</b> results
+                <b className="text-navy">
+                  {page * PAGE_SIZE + products.length}
+                </b>{" "}
+                of <b className="text-navy">{totalElements}</b> results
               </p>
             </div>
           )}

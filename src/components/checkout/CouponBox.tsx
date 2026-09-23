@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Tag, X, Check, Loader2 } from "lucide-react";
-import { couponService, CouponResponse } from "../../api/services/couponService";
+import {
+  couponService,
+  CouponResponse,
+} from "../../api/services/couponService";
 import { getErrorMessage } from "../../lib/api-client";
 import { notify } from "../ui/toast";
 
@@ -75,11 +78,7 @@ export default function CouponBox({ subtotal, applied, onApply }: Props) {
             disabled={loading || !code.trim()}
             className="inline-flex items-center justify-center gap-2 bg-brand hover:bg-brand-dark text-white text-xs font-bold px-5 rounded-xl disabled:opacity-50 transition-colors min-w-[80px]"
           >
-            {loading ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              "Apply"
-            )}
+            {loading ? <Loader2 size={14} className="animate-spin" /> : "Apply"}
           </button>
         </div>
       )}

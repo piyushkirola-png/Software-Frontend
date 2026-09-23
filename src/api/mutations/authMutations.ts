@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../services/authService";
-import { LoginRequest, RegisterRequest, ResetPasswordRequest } from "../../types/auth";
+import {
+  LoginRequest,
+  RegisterRequest,
+  ResetPasswordRequest,
+} from "../../types/auth";
 
 export function useLoginMutation() {
   const qc = useQueryClient();

@@ -100,9 +100,7 @@ export default function AdminDashboard() {
         <h2 className="text-base font-bold text-navy mb-1">
           Couldn't load dashboard stats
         </h2>
-        <p className="text-xs text-muted mb-4">
-          Please try again in a moment.
-        </p>
+        <p className="text-xs text-muted mb-4">Please try again in a moment.</p>
         <button
           onClick={() => refetch()}
           className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
@@ -153,8 +151,7 @@ export default function AdminDashboard() {
       orders: d.orders,
     })) || [];
 
-  const revenueTrend =
-    fullTrend.length > 7 ? fullTrend.slice(-7) : fullTrend;
+  const revenueTrend = fullTrend.length > 7 ? fullTrend.slice(-7) : fullTrend;
 
   const maxRev = Math.max(...revenueTrend.map((d) => d.revenue), 100);
 
@@ -166,11 +163,12 @@ export default function AdminDashboard() {
   ].filter((d: StatusItem) => d.value > 0);
 
   // ============ CHART 3 DATA: Revenue by Category ============
-  const categoryData: CategoryItem[] =
-    ((stats as any).revenueByCategory ?? []).map((d: any) => ({
-      label: d.categoryName || d.label || "Other",
-      value: Number(d.value ?? d.revenue ?? 0),
-    }));
+  const categoryData: CategoryItem[] = (
+    (stats as any).revenueByCategory ?? []
+  ).map((d: any) => ({
+    label: d.categoryName || d.label || "Other",
+    value: Number(d.value ?? d.revenue ?? 0),
+  }));
 
   const maxCategory = Math.max(...categoryData.map((d) => d.value), 100);
 
@@ -255,9 +253,7 @@ export default function AdminDashboard() {
                 <TrendingUp className="h-4 w-4 text-brand" />
                 Revenue Overview
               </h2>
-              <p className="text-[11px] text-muted mt-0.5">
-                Last 7 days
-              </p>
+              <p className="text-[11px] text-muted mt-0.5">Last 7 days</p>
             </div>
 
             <div style={{ width: "100%", height: 260 }}>
@@ -482,16 +478,12 @@ export default function AdminDashboard() {
                       ]}
                     />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={70}>
-                      {categoryData.map(
-                        (_: CategoryItem, idx: number) => (
-                          <Cell
-                            key={idx}
-                            fill={
-                              CATEGORY_COLORS[idx % CATEGORY_COLORS.length]
-                            }
-                          />
-                        ),
-                      )}
+                      {categoryData.map((_: CategoryItem, idx: number) => (
+                        <Cell
+                          key={idx}
+                          fill={CATEGORY_COLORS[idx % CATEGORY_COLORS.length]}
+                        />
+                      ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>

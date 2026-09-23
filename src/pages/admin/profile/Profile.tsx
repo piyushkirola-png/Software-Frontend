@@ -52,9 +52,7 @@ export default function AdminProfile() {
         <h2 className="text-base font-bold text-navy mb-1">
           Couldn't load your profile
         </h2>
-        <p className="text-xs text-muted mb-4">
-          Please try again in a moment.
-        </p>
+        <p className="text-xs text-muted mb-4">Please try again in a moment.</p>
         <Button variant="outline" size="sm" onClick={() => refetch()}>
           Retry
         </Button>
@@ -112,7 +110,7 @@ export default function AdminProfile() {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
     </div>
   );
@@ -184,7 +182,6 @@ function ViewMode({ profile }: { profile: User }) {
   );
 }
 
-
 function EditAdminModal({
   open,
   profile,
@@ -222,9 +219,9 @@ function EditAdminModal({
 
   const onField =
     (key: keyof UpdateProfileRequest) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm((f) => ({ ...f, [key]: e.target.value }));
-      };
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((f) => ({ ...f, [key]: e.target.value }));
+    };
 
   const handlePickFile = () => fileInputRef.current?.click();
 
@@ -425,7 +422,7 @@ function EditAdminModal({
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
 
       {/* Nested Confirm */}
@@ -450,9 +447,7 @@ function EditAdminModal({
                   <div className="p-1.5 rounded-lg bg-brand/10">
                     <AlertTriangle className="h-4 w-4 text-brand" />
                   </div>
-                  <h3 className="text-sm font-bold text-navy">
-                    Save changes?
-                  </h3>
+                  <h3 className="text-sm font-bold text-navy">Save changes?</h3>
                 </div>
                 <p className="text-xs text-muted mb-5">
                   Your profile will be updated with the new information.
@@ -484,7 +479,7 @@ function EditAdminModal({
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
     </>
   );

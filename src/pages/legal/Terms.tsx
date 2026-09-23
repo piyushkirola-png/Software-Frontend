@@ -15,9 +15,8 @@ export default function Terms() {
       <section className="max-w-4xl mx-auto px-4 py-12 space-y-6">
         <Section title="1. General Information">
           <p>
-            The content on this website is provided for your general
-            information and use only. It is subject to change without prior
-            notice.
+            The content on this website is provided for your general information
+            and use only. It is subject to change without prior notice.
           </p>
         </Section>
 
@@ -26,36 +25,35 @@ export default function Terms() {
             While we strive to provide accurate and timely information, we do
             not provide any warranty or guarantee as to the completeness or
             suitability of the information for any specific purpose. You
-            acknowledge that materials on this website may contain
-            inaccuracies or errors, and we expressly exclude liability for any
-            such inaccuracies to the fullest extent permitted by law.
+            acknowledge that materials on this website may contain inaccuracies
+            or errors, and we expressly exclude liability for any such
+            inaccuracies to the fullest extent permitted by law.
           </p>
         </Section>
 
         <Section title="3. Risk and Liability">
           <p>
-            Your use of any information or materials on this website is
-            entirely at your own risk, for which we shall not be liable. It is
-            your own responsibility to ensure that any products, services, or
-            information available through this website meet your specific
-            requirements.
+            Your use of any information or materials on this website is entirely
+            at your own risk, for which we shall not be liable. It is your own
+            responsibility to ensure that any products, services, or information
+            available through this website meet your specific requirements.
           </p>
         </Section>
 
         <Section title="4. Intellectual Property">
           <p>
-            This website contains material which is owned by or licensed to
-            us. This material includes, but is not limited to, the design,
-            layout, look, appearance, and graphics. Unauthorized reproduction
-            is prohibited, except in accordance with the copyright notice,
-            which forms part of these terms and conditions.
+            This website contains material which is owned by or licensed to us.
+            This material includes, but is not limited to, the design, layout,
+            look, appearance, and graphics. Unauthorized reproduction is
+            prohibited, except in accordance with the copyright notice, which
+            forms part of these terms and conditions.
           </p>
         </Section>
 
         <Section title="5. Trademarks">
           <p>
-            All trademarks reproduced on this website which are not the
-            property of, or licensed to, Softora are acknowledged.
+            All trademarks reproduced on this website which are not the property
+            of, or licensed to, Softora are acknowledged.
           </p>
         </Section>
 
@@ -69,9 +67,9 @@ export default function Terms() {
         <Section title="7. External Links">
           <p>
             From time to time, our website may include links to other websites
-            for your convenience. These links do not signify that we endorse
-            the website(s). We are not responsible for the content of the
-            linked websites.
+            for your convenience. These links do not signify that we endorse the
+            website(s). We are not responsible for the content of the linked
+            websites.
           </p>
         </Section>
 

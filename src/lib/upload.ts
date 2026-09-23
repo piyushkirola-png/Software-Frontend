@@ -9,7 +9,7 @@ const BACKEND_BASE = (
  */
 export async function uploadProductImage(
   file: File,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
 ): Promise<string> {
   const form = new FormData();
   form.append("file", file);
@@ -24,7 +24,7 @@ export async function uploadProductImage(
           onProgress(Math.round((e.loaded / e.total) * 100));
         }
       },
-    }
+    },
   );
   return res.data.data.url;
 }
@@ -34,7 +34,7 @@ export async function uploadProductImage(
  */
 export async function uploadCategoryImage(
   file: File,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
 ): Promise<string> {
   const form = new FormData();
   form.append("file", file);
@@ -49,7 +49,7 @@ export async function uploadCategoryImage(
           onProgress(Math.round((e.loaded / e.total) * 100));
         }
       },
-    }
+    },
   );
   return res.data.data.url;
 }

@@ -8,7 +8,10 @@ interface Props {
 
 export default function ProductGallery({ images, alt }: Props) {
   const [active, setActive] = useState(0);
-  const list = images && images.length > 0 ? images : ["https://placehold.co/600x400?text=No+Image"];
+  const list =
+    images && images.length > 0
+      ? images
+      : ["https://placehold.co/600x400?text=No+Image"];
 
   return (
     <div className="w-full">
@@ -28,8 +31,11 @@ export default function ProductGallery({ images, alt }: Props) {
             <button
               key={i}
               onClick={() => setActive(i)}
-              className={`aspect-square rounded-lg overflow-hidden border-2 transition ${i === active ? "border-brand" : "border-gray-100 hover:border-gray-300"
-                }`}
+              className={`aspect-square rounded-lg overflow-hidden border-2 transition ${
+                i === active
+                  ? "border-brand"
+                  : "border-gray-100 hover:border-gray-300"
+              }`}
             >
               <img
                 src={resolveImageUrl(img)}

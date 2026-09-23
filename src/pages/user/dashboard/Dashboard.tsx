@@ -50,9 +50,7 @@ export default function UserDashboard() {
         <h2 className="text-base font-bold text-navy mb-1">
           Couldn't load your account
         </h2>
-        <p className="text-xs text-muted mb-4">
-          Please try again in a moment.
-        </p>
+        <p className="text-xs text-muted mb-4">Please try again in a moment.</p>
         <button
           onClick={() => refetch()}
           className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
@@ -252,10 +250,7 @@ export default function UserDashboard() {
               />
               <SummaryRow label="License Keys" value={totalKeys} />
               <SummaryRow label="Downloads" value={downloads.length} />
-              <SummaryRow
-                label="Total Spent"
-                value={fmtCurrency(totalSpent)}
-              />
+              <SummaryRow label="Total Spent" value={fmtCurrency(totalSpent)} />
             </div>
 
             <div className="mt-5 pt-5 border-t border-gray-100">

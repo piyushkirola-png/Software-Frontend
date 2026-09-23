@@ -38,8 +38,12 @@ const EMPTY: CategoryRequest = {
 
 export default function AdminCategories() {
   const { showToast } = useAuthContext();
-  const { data: categories = [], isLoading, isError, refetch } =
-    useAdminCategories();
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useAdminCategories();
   const create = useCreateCategory();
   const update = useUpdateCategory();
   const del = useDeleteCategory();
@@ -143,9 +147,7 @@ export default function AdminCategories() {
       {isError && (
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
           <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
-          <p className="text-sm text-navy mb-3">
-            Failed to load categories
-          </p>
+          <p className="text-sm text-navy mb-3">Failed to load categories</p>
           <button
             onClick={() => refetch()}
             className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
@@ -201,8 +203,9 @@ export default function AdminCategories() {
                                   alt=""
                                   className="max-h-full max-w-full object-contain p-0.5"
                                   onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).style.display =
-                                      "none";
+                                    (
+                                      e.currentTarget as HTMLImageElement
+                                    ).style.display = "none";
                                   }}
                                 />
                               ) : (
@@ -340,23 +343,27 @@ export default function AdminCategories() {
               <button
                 type="button"
                 onClick={() => update_("isActive", !form.isActive)}
-                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border transition w-full ${form.isActive
-                  ? "border-success/30 bg-success/5"
-                  : "border-gray-200 bg-gray-50"
-                  }`}
+                className={`inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border transition w-full ${
+                  form.isActive
+                    ? "border-success/30 bg-success/5"
+                    : "border-gray-200 bg-gray-50"
+                }`}
               >
                 <span
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${form.isActive ? "bg-success" : "bg-gray-300"
-                    }`}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${
+                    form.isActive ? "bg-success" : "bg-gray-300"
+                  }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${form.isActive ? "translate-x-[18px]" : "translate-x-0.5"
-                      }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
+                      form.isActive ? "translate-x-[18px]" : "translate-x-0.5"
+                    }`}
                   />
                 </span>
                 <span
-                  className={`text-sm font-semibold ${form.isActive ? "text-success" : "text-muted"
-                    }`}
+                  className={`text-sm font-semibold ${
+                    form.isActive ? "text-success" : "text-muted"
+                  }`}
                 >
                   {form.isActive ? "Active" : "Inactive"}
                 </span>

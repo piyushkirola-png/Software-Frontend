@@ -10,7 +10,12 @@ interface Props {
   loading?: boolean;
 }
 
-export default function AddressForm({ initial, onSubmit, onCancel, loading }: Props) {
+export default function AddressForm({
+  initial,
+  onSubmit,
+  onCancel,
+  loading,
+}: Props) {
   const [form, setForm] = useState<AddressRequest>({
     fullName: initial?.fullName || "",
     phone: initial?.phone || "",

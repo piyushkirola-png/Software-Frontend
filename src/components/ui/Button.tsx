@@ -31,8 +31,7 @@ export default function Button({
     primary:
       "bg-brand hover:bg-brand-dark text-white shadow-md shadow-brand/25 hover:shadow-lg hover:shadow-brand/35",
     navy: "bg-navy hover:bg-navy-light text-white shadow-md shadow-navy/25 hover:shadow-lg",
-    outline:
-      "border-2 border-brand text-brand hover:bg-brand hover:text-white",
+    outline: "border-2 border-brand text-brand hover:bg-brand hover:text-white",
     ghost: "text-brand hover:bg-brand/10",
     danger: "bg-danger hover:bg-red-700 text-white",
   }[variant];

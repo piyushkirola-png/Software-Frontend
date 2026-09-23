@@ -21,7 +21,10 @@ import Button from "../../components/ui/Button";
 import Reveal from "../../components/animations/Reveal";
 import CheckoutSteps from "../../components/checkout/CheckoutSteps";
 import { useAuthContext } from "../../lib/AuthContext";
-import { couponService, CouponResponse } from "../../api/services/couponService";
+import {
+  couponService,
+  CouponResponse,
+} from "../../api/services/couponService";
 import { notify } from "../../components/ui/toast";
 import { getErrorMessage } from "../../lib/api-client";
 import { resolveImageUrl } from "../../lib/upload";
@@ -104,9 +107,9 @@ export default function Cart() {
   const discount = coupon
     ? coupon.type === "PERCENT"
       ? Math.min(
-        (cart.subtotal * coupon.value) / 100,
-        coupon.maxDiscount ?? Infinity,
-      )
+          (cart.subtotal * coupon.value) / 100,
+          coupon.maxDiscount ?? Infinity,
+        )
       : coupon.value
     : 0;
 
@@ -144,8 +147,8 @@ export default function Cart() {
                 Shopping Cart
               </h1>
               <p className="text-sm text-muted mt-1">
-                {cart.totalItems} item{cart.totalItems !== 1 ? "s" : ""} in
-                your cart
+                {cart.totalItems} item{cart.totalItems !== 1 ? "s" : ""} in your
+                cart
               </p>
             </div>
           </Reveal>

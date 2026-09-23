@@ -69,9 +69,13 @@ export default function ProductReviews({ productId }: Props) {
                     {r.userInitials}
                   </div>
                   <div>
-                    <div className="font-bold text-navy text-sm">{r.userName}</div>
+                    <div className="font-bold text-navy text-sm">
+                      {r.userName}
+                    </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <div className="flex gap-0.5">{renderStars(r.rating)}</div>
+                      <div className="flex gap-0.5">
+                        {renderStars(r.rating)}
+                      </div>
                       {r.isVerifiedPurchase && (
                         <span className="flex items-center gap-1 text-success font-semibold">
                           <CheckCircle size={11} /> Verified Buyer

@@ -50,7 +50,6 @@ export default function Contact() {
   return (
     <>
       <PageHero
-        badge="Contact Us"
         title="Get in Touch"
         subtitle="We're here to help — get in touch anytime. Our team responds within 24 hours."
       />
@@ -119,9 +118,7 @@ export default function Contact() {
                   <div className="p-1.5 rounded-lg bg-brand/10">
                     <Clock size={14} className="text-brand" />
                   </div>
-                  <h3 className="text-sm font-bold text-navy">
-                    Support Hours
-                  </h3>
+                  <h3 className="text-sm font-bold text-navy">Support Hours</h3>
                 </div>
                 <div className="space-y-1.5 text-sm text-muted">
                   <div className="flex justify-between">
@@ -161,9 +158,7 @@ export default function Contact() {
                   <Input
                     label="Your Name *"
                     value={form.name}
-                    onChange={(e) =>
-                      setForm({ ...form, name: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="John Doe"
                   />
                   <Input
@@ -180,9 +175,7 @@ export default function Contact() {
                 <Input
                   label="Phone"
                   value={form.phone}
-                  onChange={(e) =>
-                    setForm({ ...form, phone: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   placeholder="+91 9876543210"
                 />
 
@@ -305,9 +298,7 @@ function TrustChip({
     <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
       <div className="p-3.5 rounded-xl bg-soft shrink-0">{icon}</div>
       <div className="min-w-0">
-        <div className="text-sm font-bold text-navy truncate">
-          {label}
-        </div>
+        <div className="text-sm font-bold text-navy truncate">{label}</div>
         <div className="text-xs text-muted truncate mt-0.5">{sub}</div>
       </div>
     </div>

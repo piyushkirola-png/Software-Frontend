@@ -134,7 +134,9 @@ const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
     const errorCls = "text-[11px] text-red-600 mt-1";
 
     return (
-      <div className={`bg-white rounded-2xl border border-gray-100 p-5 lg:p-6 ${className}`}>
+      <div
+        className={`bg-white rounded-2xl border border-gray-100 p-5 lg:p-6 ${className}`}
+      >
         <h3 className="text-sm font-bold text-navy mb-5">Billing details</h3>
 
         <div className="space-y-4">
@@ -151,7 +153,9 @@ const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
                 className={inputCls}
                 autoComplete="given-name"
               />
-              {errors.firstName && <p className={errorCls}>{errors.firstName}</p>}
+              {errors.firstName && (
+                <p className={errorCls}>{errors.firstName}</p>
+              )}
             </div>
             <div>
               <label className={labelCls}>
@@ -271,7 +275,9 @@ const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
               <input
                 type="text"
                 value={postcode}
-                onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) =>
+                  setPostcode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
                 className={inputCls}
                 autoComplete="postal-code"
                 inputMode="numeric"
@@ -288,7 +294,9 @@ const BillingForm = forwardRef<BillingFormHandle, BillingFormProps>(
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              onChange={(e) =>
+                setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
               placeholder="10-digit mobile number"
               className={inputCls}
               autoComplete="tel"

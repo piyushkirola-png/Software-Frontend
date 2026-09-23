@@ -15,10 +15,26 @@ import { useAuthContext } from "../../lib/AuthContext";
 import { useCartCount } from "../../api/queries/useCart";
 
 const navItems = [
-  { label: "WINDOWS", to: "/products/category/windows", icon: "/variant/window1.png" },
-  { label: "OFFICE", to: "/products/category/office", icon: "/variant/office.png" },
-  { label: "WINDOWS SERVER", to: "/products/category/windows-server", icon: "/variant/window2.png" },
-  { label: "ANTIVIRUS", to: "/products/category/antivirus", icon: "/variant/antivirus.png" },
+  {
+    label: "WINDOWS",
+    to: "/products/category/windows",
+    icon: "/variant/window1.png",
+  },
+  {
+    label: "OFFICE",
+    to: "/products/category/office",
+    icon: "/variant/office.png",
+  },
+  {
+    label: "WINDOWS SERVER",
+    to: "/products/category/windows-server",
+    icon: "/variant/window2.png",
+  },
+  {
+    label: "ANTIVIRUS",
+    to: "/products/category/antivirus",
+    icon: "/variant/antivirus.png",
+  },
   { label: "ABOUT US", to: "/about-us", icon: "/variant/aboutus.png" },
   { label: "CONTACT US", to: "/contact-us", icon: "/variant/mail.png" },
 ];
@@ -51,7 +67,10 @@ export default function Header() {
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -79,7 +98,7 @@ export default function Header() {
         }`}
       >
         {/* Top row */}
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4 md:gap-6">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden w-9 h-9 rounded-lg hover:bg-soft flex items-center justify-center shrink-0"
@@ -88,6 +107,7 @@ export default function Header() {
             <Menu size={20} className="text-navy" />
           </button>
 
+          {/* Logo — left */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
               src="/assets/logo.png"
@@ -95,13 +115,14 @@ export default function Header() {
               className="h-11 w-auto object-contain"
             />
             <div className="leading-tight hidden sm:block">
-              <div className="font-extrabold text-navy text-base tracking-tight">
+              <div className="font-extrabold text-navy text-xl tracking-tight">
                 Softora
               </div>
             </div>
           </Link>
 
-          <div className="flex-1 relative min-w-0">
+          {/* Search */}
+          <div className="flex-1 max-w-[460px] relative min-w-0 ml-8 lg:ml-16">
             <Search
               size={18}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -119,7 +140,10 @@ export default function Header() {
             />
           </div>
 
-          <div className="hidden xl:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2">
+          <div className="flex-1 hidden lg:block" />
+
+          {/* Secure Checkout pill */}
+          <div className="hidden xl:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 shrink-0">
             <ShieldCheck size={16} className="text-success" />
             <span className="text-[10px] font-bold text-muted leading-tight">
               SECURE
@@ -128,13 +152,14 @@ export default function Header() {
             </span>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2">
+          {/* Sales & Support */}
+          <div className="hidden lg:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 shrink-0 transition-all hover:border-blue-500 hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] cursor-pointer">
             <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white">
               <Phone size={16} />
             </div>
             <div className="leading-tight">
               <div className="text-[10px] text-muted font-semibold">
-                SALES & SUPPORT
+                SALES &amp; SUPPORT
               </div>
               <div className="text-sm font-bold text-navy">+91 9911611207</div>
             </div>
@@ -145,11 +170,11 @@ export default function Header() {
             <div ref={userMenuRef} className="relative shrink-0">
               <button
                 onClick={() => setUserMenuOpen((o) => !o)}
-                className="flex items-center gap-2 text-sm font-semibold text-navy hover:text-brand transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-brand transition-colors"
               >
                 <User size={18} />
                 <span className="hidden md:inline">
-                  {user?.name?.split(" ")[0] || "Account"}
+                  {user?.name?.split(" ")[0] || "ACCOUNT"}
                 </span>
               </button>
 
@@ -183,17 +208,17 @@ export default function Header() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-1 text-sm font-semibold text-navy hover:text-brand shrink-0 transition-colors"
+              className="flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-brand shrink-0 transition-colors"
             >
               <User size={18} />
               <span className="hidden md:inline">LOGIN</span>
             </Link>
           )}
 
-          {/* Cart — navigates to /cart */}
+          {/* Cart */}
           <Link
             to="/cart"
-            className="relative flex items-center gap-1 text-sm font-semibold text-navy hover:text-brand shrink-0 transition-colors"
+            className="relative flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-brand shrink-0 transition-colors"
           >
             <ShoppingCart size={18} />
             <span className="hidden md:inline">CART</span>
@@ -214,7 +239,11 @@ export default function Header() {
                 to={item.to}
                 className="relative flex items-center gap-2 hover:text-brand transition-colors group py-1"
               >
-                <img src={item.icon} alt="" className="w-5 h-5 object-contain" />
+                <img
+                  src={item.icon}
+                  alt=""
+                  className="w-5 h-5 object-contain"
+                />
                 {item.label}
                 <span className="absolute left-0 right-0 -bottom-0.5 h-0.5 bg-brand scale-x-0 group-hover:scale-x-100 origin-left transition-transform" />
               </Link>
@@ -258,7 +287,11 @@ export default function Header() {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-soft text-sm font-semibold text-navy"
                 >
-                  <img src={item.icon} alt="" className="w-5 h-5 object-contain" />
+                  <img
+                    src={item.icon}
+                    alt=""
+                    className="w-5 h-5 object-contain"
+                  />
                   {item.label}
                 </Link>
               ))}

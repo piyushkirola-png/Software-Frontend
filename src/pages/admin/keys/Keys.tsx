@@ -22,10 +22,7 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Badge from "../../../components/ui/Badge";
 import Reveal from "../../../components/animations/Reveal";
-import {
-  useAdminKeys,
-  useAdminProducts,
-} from "../../../api/queries/useAdmin";
+import { useAdminKeys, useAdminProducts } from "../../../api/queries/useAdmin";
 import {
   useAddKey,
   useBulkUploadKeys,
@@ -143,7 +140,10 @@ export default function AdminKeys() {
       window.addEventListener("resize", onScrollOrResize);
 
       const onClickOutside = (e: MouseEvent) => {
-        if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        if (
+          filterRef.current &&
+          !filterRef.current.contains(e.target as Node)
+        ) {
           setFilterOpen(false);
           setDraftStatus(status);
           setDraftProductId(productId);
@@ -185,8 +185,9 @@ export default function AdminKeys() {
           </span>
           <ChevronDown
             size={16}
-            className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""
-              }`}
+            className={`shrink-0 text-muted transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
           />
         </button>
 
@@ -227,10 +228,11 @@ export default function AdminKeys() {
                     onChange(p.id);
                     setOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition ${value === p.id
-                    ? "bg-brand/5 text-brand font-semibold"
-                    : "text-navy hover:bg-soft"
-                    }`}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition ${
+                    value === p.id
+                      ? "bg-brand/5 text-brand font-semibold"
+                      : "text-navy hover:bg-soft"
+                  }`}
                 >
                   <span className="truncate">{p.title}</span>
                   {value === p.id && (
@@ -239,7 +241,7 @@ export default function AdminKeys() {
                 </button>
               ))}
             </div>,
-            document.body
+            document.body,
           )}
       </div>
     );
@@ -411,10 +413,11 @@ export default function AdminKeys() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                ? "border-brand/40 bg-brand/5 text-brand"
-                : "border-gray-200 text-navy hover:bg-gray-50"
-                }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
+                hasFilters
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
+              }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -640,9 +643,7 @@ export default function AdminKeys() {
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
             Showing{" "}
-            <span className="font-semibold text-navy">
-              {page * 50 + 1}
-            </span>
+            <span className="font-semibold text-navy">{page * 50 + 1}</span>
             {" – "}
             <span className="font-semibold text-navy">
               {page * 50 + keys.length}
@@ -824,9 +825,7 @@ export default function AdminKeys() {
             <h3 className="text-lg font-bold text-navy">
               Add Single License Key
             </h3>
-            <p className="text-xs text-muted mt-0.5">
-              Add one key manually
-            </p>
+            <p className="text-xs text-muted mt-0.5">Add one key manually</p>
           </div>
 
           <div>
@@ -870,7 +869,11 @@ export default function AdminKeys() {
             >
               Cancel
             </button>
-            <Button fullWidth onClick={handleAddSingle} loading={addKey.isPending}>
+            <Button
+              fullWidth
+              onClick={handleAddSingle}
+              loading={addKey.isPending}
+            >
               Add Key
             </Button>
           </div>
@@ -887,7 +890,11 @@ export default function AdminKeys() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
               onClick={() =>
-                setConfirmState({ open: false, key: null, actionType: "revoke" })
+                setConfirmState({
+                  open: false,
+                  key: null,
+                  actionType: "revoke",
+                })
               }
             >
               <motion.div
@@ -924,10 +931,11 @@ export default function AdminKeys() {
                   <button
                     onClick={handleConfirmAction}
                     disabled={confirmPending}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.actionType === "revoke"
-                      ? "bg-yellow-600 hover:bg-yellow-700"
-                      : "bg-red-600 hover:bg-red-700"
-                      }`}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${
+                      confirmState.actionType === "revoke"
+                        ? "bg-yellow-600 hover:bg-yellow-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
                   >
                     {confirmPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -942,7 +950,7 @@ export default function AdminKeys() {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
 
       {/* ============ TOAST ============ */}
@@ -962,7 +970,7 @@ export default function AdminKeys() {
             </motion.div>
           )}
         </AnimatePresence>,
-        document.body
+        document.body,
       )}
     </div>
   );

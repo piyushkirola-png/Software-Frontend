@@ -16,8 +16,8 @@ export default function CategoryGrid() {
               Top Categories
             </h2>
             <p className="text-muted mt-3 text-sm md:text-base max-w-2xl mx-auto">
-              Our top categories bring together powerful software solutions
-              that deliver performance, reliability, and long-term value.
+              Our top categories bring together powerful software solutions that
+              deliver performance, reliability, and long-term value.
             </p>
           </div>
         </Reveal>

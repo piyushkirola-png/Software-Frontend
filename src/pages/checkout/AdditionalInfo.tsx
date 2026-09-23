@@ -3,14 +3,18 @@ interface AdditionalInfoProps {
   onChange: (value: string) => void;
 }
 
-export default function AdditionalInfo({ notes, onChange }: AdditionalInfoProps) {
+export default function AdditionalInfo({
+  notes,
+  onChange,
+}: AdditionalInfoProps) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
-      <h3 className="text-sm font-bold text-navy mb-4">Additional information</h3>
+      <h3 className="text-sm font-bold text-navy mb-4">
+        Additional information
+      </h3>
       <div>
         <label className="block text-xs font-semibold text-navy mb-1.5">
-          Order notes{" "}
-          <span className="text-muted font-normal">(optional)</span>
+          Order notes <span className="text-muted font-normal">(optional)</span>
         </label>
         <textarea
           value={notes}

@@ -21,7 +21,7 @@ export default function Reveal({ children, delay = 0, className = "" }: Props) {
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
     observer.observe(ref.current);
     return () => observer.disconnect();

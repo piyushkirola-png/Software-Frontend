@@ -98,7 +98,10 @@ export default function App() {
             {/* Public layout — everything with Header + Footer */}
             <Route element={<PublicLayout />}>
               <Route path="/products" element={<ProductListing />} />
-              <Route path="/products/category/:slug" element={<CategoryListing />} />
+              <Route
+                path="/products/category/:slug"
+                element={<CategoryListing />}
+              />
               <Route path="/product/:slug" element={<ProductDetail />} />
 
               <Route path="/cart" element={<Cart />} />
@@ -115,7 +118,10 @@ export default function App() {
               <Route path="/terms-condition" element={<Terms />} />
               <Route path="/privacy-policy" element={<Privacy />} />
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
-              <Route path="/cancellation-refund" element={<CancellationRefund />} />
+              <Route
+                path="/cancellation-refund"
+                element={<CancellationRefund />}
+              />
               <Route path="/contact-us" element={<Contact />} />
             </Route>
 
@@ -128,7 +134,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/user/dashboard" replace />} />
+              <Route
+                index
+                element={<Navigate to="/user/dashboard" replace />}
+              />
               <Route path="dashboard" element={<UserDashboard />} />
               <Route path="orders" element={<UserOrders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
@@ -147,7 +156,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route
+                index
+                element={<Navigate to="/admin/dashboard" replace />}
+              />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="products" element={<AdminProducts />} />

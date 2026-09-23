@@ -100,11 +100,7 @@ export default function OrderDetail() {
               />
             )}
             <InfoCell label="GST" value={`₹${order.tax.toFixed(2)}`} />
-            <InfoCell
-              label="Total"
-              value={`₹${order.total.toFixed(2)}`}
-              bold
-            />
+            <InfoCell label="Total" value={`₹${order.total.toFixed(2)}`} bold />
           </div>
 
           <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-100">
@@ -172,50 +168,49 @@ export default function OrderDetail() {
       </Reveal>
 
       {/* ============ LICENSE KEYS ============ */}
-      {order.status === "SUCCESS" &&
-        order.items.some((i) => i.licenseKey) && (
-          <Reveal>
-            <div className="bg-navy rounded-2xl p-5 lg:p-6 text-white">
-              <h2 className="text-sm font-bold flex items-center gap-2 mb-4">
-                <Key size={16} /> Your License Keys
-              </h2>
-              <div className="space-y-3">
-                {order.items
-                  .filter((i) => i.licenseKey)
-                  .map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white/5 border border-white/10 rounded-xl p-4"
-                    >
-                      <div className="text-xs text-gray-400 mb-2">
-                        {item.productTitle}
-                        {item.variantName ? ` • ${item.variantName}` : ""}
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <code className="font-mono text-sm text-white break-all">
-                          {item.licenseKey}
-                        </code>
-                        <button
-                          onClick={() => copy(item.licenseKey!, item.id)}
-                          className="shrink-0 inline-flex items-center gap-1 text-xs bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg font-semibold transition"
-                        >
-                          {copiedId === item.id ? (
-                            <>
-                              <CheckCircle size={12} /> Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={12} /> Copy
-                            </>
-                          )}
-                        </button>
-                      </div>
+      {order.status === "SUCCESS" && order.items.some((i) => i.licenseKey) && (
+        <Reveal>
+          <div className="bg-navy rounded-2xl p-5 lg:p-6 text-white">
+            <h2 className="text-sm font-bold flex items-center gap-2 mb-4">
+              <Key size={16} /> Your License Keys
+            </h2>
+            <div className="space-y-3">
+              {order.items
+                .filter((i) => i.licenseKey)
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white/5 border border-white/10 rounded-xl p-4"
+                  >
+                    <div className="text-xs text-gray-400 mb-2">
+                      {item.productTitle}
+                      {item.variantName ? ` • ${item.variantName}` : ""}
                     </div>
-                  ))}
-              </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <code className="font-mono text-sm text-white break-all">
+                        {item.licenseKey}
+                      </code>
+                      <button
+                        onClick={() => copy(item.licenseKey!, item.id)}
+                        className="shrink-0 inline-flex items-center gap-1 text-xs bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg font-semibold transition"
+                      >
+                        {copiedId === item.id ? (
+                          <>
+                            <CheckCircle size={12} /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={12} /> Copy
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
             </div>
-          </Reveal>
-        )}
+          </div>
+        </Reveal>
+      )}
     </div>
   );
 }

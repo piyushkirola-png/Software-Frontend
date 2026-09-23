@@ -24,13 +24,21 @@ export default function SignUp() {
     if (!email.trim()) return toast.error("Email is required");
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    if (password !== confirmPassword) return toast.error("Passwords do not match");
+    if (password !== confirmPassword)
+      return toast.error("Passwords do not match");
 
     setLoading(true);
     const t = toast.loading("Creating your account…");
     try {
-      const res = await register({ name, email, password, phone: phone || undefined });
-      toast.success("Account created successfully! Welcome to Softora.", { id: t });
+      const res = await register({
+        name,
+        email,
+        password,
+        phone: phone || undefined,
+      });
+      toast.success("Account created successfully! Welcome to Softora.", {
+        id: t,
+      });
       const target =
         res.role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
       nav(target, { replace: true });
@@ -130,8 +138,8 @@ export default function SignUp() {
 
             <p className="text-[11px] text-muted leading-relaxed">
               Your personal data will be used to support your experience
-              throughout this website, to manage access to your account, and
-              for other purposes described in our{" "}
+              throughout this website, to manage access to your account, and for
+              other purposes described in our{" "}
               <Link to="/privacy-policy" className="text-brand hover:underline">
                 privacy policy
               </Link>

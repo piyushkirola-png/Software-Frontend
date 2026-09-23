@@ -49,7 +49,6 @@ export default function About() {
   return (
     <>
       <PageHero
-        badge="About Us"
         title="About Softora"
         subtitle="Your Reliable Partner for Authentic Software at Unbeatable Rates."
       />
@@ -60,9 +59,9 @@ export default function About() {
           <SectionHeading>Who We Are</SectionHeading>
           <div className="text-base text-muted leading-relaxed space-y-4">
             <p>
-              Welcome to Softora! We are a customer-centric digital
-              retailer committed to making legitimate software both accessible
-              and affordable. Our primary goal is to supply you with genuine
+              Welcome to Softora! We are a customer-centric digital retailer
+              committed to making legitimate software both accessible and
+              affordable. Our primary goal is to supply you with genuine
               software licenses from top-tier brands at highly competitive
               prices, all supported by a responsive and expert support team.
             </p>
@@ -84,21 +83,20 @@ export default function About() {
           </div>
           <div className="text-base text-muted leading-relaxed space-y-4">
             <p>
-              You might ask how we manage to offer such significant discounts
-              on genuine software. Our method is simple and transparent:
-              Software Universe functions as an independent reseller. We
-              carefully source our licenses through a network of authorized
-              distributors, trusted refurbishers, and by purchasing volume or
-              surplus inventory. This strategic sourcing enables us to acquire
-              genuine products at reduced costs, and we pass those savings
-              directly on to you.
+              You might ask how we manage to offer such significant discounts on
+              genuine software. Our method is simple and transparent: Software
+              Universe functions as an independent reseller. We carefully source
+              our licenses through a network of authorized distributors, trusted
+              refurbishers, and by purchasing volume or surplus inventory. This
+              strategic sourcing enables us to acquire genuine products at
+              reduced costs, and we pass those savings directly on to you.
             </p>
             <p>
-              <span className="font-bold text-navy">Important Note:</span>{" "}
-              The software brands we retail (such as Microsoft, Adobe,
-              Kaspersky, CorelDRAW, or Autodesk). All trademarks, logos, and
-              brand names belong to their respective owners and are used on our
-              platform strictly for identification purposes.
+              <span className="font-bold text-navy">Important Note:</span> The
+              software brands we retail (such as Microsoft, Adobe, Kaspersky,
+              CorelDRAW, or Autodesk). All trademarks, logos, and brand names
+              belong to their respective owners and are used on our platform
+              strictly for identification purposes.
             </p>
             <p>
               Our streamlined operational model also helps keep our overhead
@@ -115,11 +113,11 @@ export default function About() {
           </div>
           <div className="text-base text-muted leading-relaxed space-y-4">
             <p>
-              At Softora, authenticity is the foundation of our
-              operations. We recognize the critical need for using legitimate
-              software. Every license we offer is rigorously sourced to ensure
-              it is valid and compliant. We take a firm stand against software
-              piracy and are committed to delivering only genuine products.
+              At Softora, authenticity is the foundation of our operations. We
+              recognize the critical need for using legitimate software. Every
+              license we offer is rigorously sourced to ensure it is valid and
+              compliant. We take a firm stand against software piracy and are
+              committed to delivering only genuine products.
             </p>
             <p>
               We offer clear instructions for installation and activation,
@@ -175,7 +173,8 @@ export default function About() {
         <Reveal delay={0.35}>
           <div className="mt-10 bg-brand-light/30 rounded-2xl px-6 py-5 text-center">
             <p className="text-sm sm:text-base font-bold text-black leading-snug whitespace-nowrap">
-              Discover the Softora difference – where authenticity, value, and support converge.
+              Discover the Softora difference – where authenticity, value, and
+              support converge.
             </p>
           </div>
         </Reveal>

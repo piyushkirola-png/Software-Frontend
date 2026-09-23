@@ -75,9 +75,7 @@ export default function GatewayPickerModal({
               <h3 className="text-base font-bold text-navy">
                 Choose Payment Method
               </h3>
-              <p className="text-[11px] text-muted mt-0.5">
-                Secure checkout
-              </p>
+              <p className="text-[11px] text-muted mt-0.5">Secure checkout</p>
             </div>
             <button
               onClick={onClose}
@@ -137,9 +135,7 @@ export default function GatewayPickerModal({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-navy text-sm">
-                      {g.label}
-                    </div>
+                    <div className="font-bold text-navy text-sm">{g.label}</div>
                     <div className="text-[11px] text-muted truncate">
                       {g.desc}
                     </div>
@@ -148,9 +144,7 @@ export default function GatewayPickerModal({
                   {/* Radio */}
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition ${
-                      active
-                        ? "border-brand bg-brand"
-                        : "border-gray-300"
+                      active ? "border-brand bg-brand" : "border-gray-300"
                     }`}
                   >
                     {active && (

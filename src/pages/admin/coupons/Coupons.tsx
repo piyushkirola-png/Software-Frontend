@@ -179,9 +179,7 @@ export default function AdminCoupons() {
             <Tag className="h-7 w-7 text-white" />
           </div>
           <h2 className="text-base font-bold text-navy mb-1">No coupons yet</h2>
-          <p className="text-sm text-muted">
-            Create your first coupon code.
-          </p>
+          <p className="text-sm text-muted">Create your first coupon code.</p>
         </div>
       )}
 
@@ -337,9 +335,7 @@ export default function AdminCoupons() {
               label="Per User Limit"
               type="number"
               value={form.perUserLimit ?? 1}
-              onChange={(e) =>
-                update_("perUserLimit", Number(e.target.value))
-              }
+              onChange={(e) => update_("perUserLimit", Number(e.target.value))}
             />
           </div>
           <label className="flex items-center gap-2 text-sm">

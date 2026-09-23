@@ -25,10 +25,10 @@ const navItems = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
+  { label: "Payments", href: "/admin/payments", icon: BarChart3 },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "License Keys", href: "/admin/keys", icon: Key },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
-  { label: "Payments", href: "/admin/payments", icon: BarChart3 },
   { label: "Profile", href: "/admin/profile", icon: UserIcon },
 ];
 

@@ -43,9 +43,7 @@ export default function UserOrders() {
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
             <PackageX className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-base font-bold text-navy mb-1">
-            No orders yet
-          </h2>
+          <h2 className="text-base font-bold text-navy mb-1">No orders yet</h2>
           <p className="text-sm text-muted mb-4">
             Your purchases will appear here.
           </p>

@@ -85,9 +85,7 @@ export default function YourOrder({ items, subtotal, coupon }: YourOrderProps) {
 
           {coupon && discount > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-success">
-                Coupon ({coupon.code})
-              </span>
+              <span className="text-success">Coupon ({coupon.code})</span>
               <span className="font-medium text-success">
                 −₹{discount.toFixed(2)}
               </span>

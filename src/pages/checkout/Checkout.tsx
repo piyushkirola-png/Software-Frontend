@@ -13,9 +13,7 @@ import { addressService } from "../../api/services/addressService";
 import { CouponResponse } from "../../api/services/couponService";
 import { getErrorMessage } from "../../lib/api-client";
 import CheckoutSteps from "../../components/checkout/CheckoutSteps";
-import BillingForm, {
-  BillingFormHandle,
-} from "./BillingForm";
+import BillingForm, { BillingFormHandle } from "./BillingForm";
 import AdditionalInfo from "./AdditionalInfo";
 import YourOrder from "./YourOrder";
 import PaymentMethodBox from "./PaymentMethodBox";
@@ -91,7 +89,7 @@ export default function Checkout() {
 
       if (!paymentLink || typeof paymentLink !== "string") {
         throw new Error(
-          "Payment gateway did not return a redirect link. Please try again."
+          "Payment gateway did not return a redirect link. Please try again.",
         );
       }
 
@@ -114,7 +112,9 @@ export default function Checkout() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-soft">
-        <h2 className="text-2xl font-bold text-navy mb-2">Your cart is empty</h2>
+        <h2 className="text-2xl font-bold text-navy mb-2">
+          Your cart is empty
+        </h2>
         <Link to="/products">
           <Button>Browse Products</Button>
         </Link>
@@ -125,14 +125,14 @@ export default function Checkout() {
   const totalPayable = Math.max(
     0,
     cart.subtotal -
-    (coupon
-      ? coupon.type === "PERCENT"
-        ? Math.min(
-          (cart.subtotal * coupon.value) / 100,
-          coupon.maxDiscount ?? Infinity,
-        )
-        : coupon.value
-      : 0),
+      (coupon
+        ? coupon.type === "PERCENT"
+          ? Math.min(
+              (cart.subtotal * coupon.value) / 100,
+              coupon.maxDiscount ?? Infinity,
+            )
+          : coupon.value
+        : 0),
   );
 
   return (
@@ -234,8 +234,8 @@ export default function Checkout() {
 
                 <p className="text-[11px] text-muted leading-relaxed text-center">
                   Your personal data will be used to process your order, support
-                  your experience throughout this website, and for other purposes
-                  described in our privacy policy.
+                  your experience throughout this website, and for other
+                  purposes described in our privacy policy.
                 </p>
               </aside>
             </Reveal>

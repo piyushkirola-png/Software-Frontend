@@ -247,7 +247,7 @@ function EditProfileModal({
     (
       e: React.ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-      >
+      >,
     ) =>
       setForm((f: any) => ({ ...f, [key]: e.target.value }));
 

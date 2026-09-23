@@ -23,7 +23,9 @@ export default function LostPassword() {
     const t = toast.loading("Sending code…");
     try {
       await authService.sendOtp({ email });
-      toast.success("A one-time code (OTP) has been sent to your email.", { id: t });
+      toast.success("A one-time code (OTP) has been sent to your email.", {
+        id: t,
+      });
       setStep("otp");
     } catch (err) {
       toast.error(getErrorMessage(err), { id: t });
@@ -52,12 +54,15 @@ export default function LostPassword() {
     e.preventDefault();
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    if (password !== confirmPassword) return toast.error("Passwords do not match");
+    if (password !== confirmPassword)
+      return toast.error("Passwords do not match");
     setLoading(true);
     const t = toast.loading("Resetting password…");
     try {
       await authService.resetPassword({ email, code, newPassword: password });
-      toast.success("Password reset successful. You can now log in.", { id: t });
+      toast.success("Password reset successful. You can now log in.", {
+        id: t,
+      });
       setStep("email");
       setCode("");
       setPassword("");

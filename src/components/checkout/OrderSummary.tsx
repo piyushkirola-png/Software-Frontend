@@ -9,7 +9,10 @@ interface Props {
 export default function OrderSummary({ subtotal, coupon }: Props) {
   const discount = coupon
     ? coupon.type === "PERCENT"
-      ? Math.min((subtotal * coupon.value) / 100, coupon.maxDiscount ?? Infinity)
+      ? Math.min(
+          (subtotal * coupon.value) / 100,
+          coupon.maxDiscount ?? Infinity,
+        )
       : coupon.value
     : 0;
 

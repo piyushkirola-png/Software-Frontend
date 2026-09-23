@@ -13,7 +13,7 @@ export const orderService = {
 
   async getMyOrdersPaginated(
     page = 0,
-    size = 10
+    size = 10,
   ): Promise<PagedResponse<Order>> {
     return apiGet<PagedResponse<Order>>("/orders/paginated", { page, size });
   },
@@ -34,7 +34,7 @@ export const orderService = {
     });
 
     const url = window.URL.createObjectURL(
-      new Blob([res.data], { type: "text/csv" })
+      new Blob([res.data], { type: "text/csv" }),
     );
     const link = document.createElement("a");
     link.href = url;
@@ -51,7 +51,7 @@ export const orderService = {
     });
 
     const url = window.URL.createObjectURL(
-      new Blob([res.data], { type: "application/pdf" })
+      new Blob([res.data], { type: "application/pdf" }),
     );
     const link = document.createElement("a");
     link.href = url;

@@ -13,7 +13,11 @@ interface Props {
 
 type Step = "email" | "otp" | "reset";
 
-export default function ForgotPasswordDialog({ open, onClose, initialEmail = "" }: Props) {
+export default function ForgotPasswordDialog({
+  open,
+  onClose,
+  initialEmail = "",
+}: Props) {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
@@ -65,7 +69,8 @@ export default function ForgotPasswordDialog({ open, onClose, initialEmail = "" 
 
   const resetPassword = async () => {
     setError("");
-    if (password.length < 6) return setError("Password must be at least 6 characters");
+    if (password.length < 6)
+      return setError("Password must be at least 6 characters");
     if (password !== confirmPassword) return setError("Passwords do not match");
     setLoading(true);
     try {

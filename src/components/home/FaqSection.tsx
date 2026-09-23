@@ -4,16 +4,46 @@ import { Plus, Minus, HelpCircle } from "lucide-react";
 import Reveal from "../animations/Reveal";
 
 const faqs = [
-  { q: "How are product keys handled?", a: "All license keys are sourced from authorized distributors and delivered instantly via email after payment." },
-  { q: "Why are your prices lower than retail?", a: "We source licenses through authorized channels, refurbishers, and surplus inventory, then pass the savings to you." },
-  { q: 'What does "Lifetime" or "Perpetual" license mean?', a: "It means the license is valid forever — no recurring subscription needed." },
-  { q: "Are order invoices available?", a: "Yes, a GST invoice is emailed to you immediately after purchase and can be downloaded from your dashboard." },
-  { q: "Do you provide installation support?", a: "Yes, our support team is available on WhatsApp and email to help with installation." },
-  { q: "How are purchase issues resolved?", a: "Contact support with your order ID — most issues are resolved within hours." },
-  { q: "What is the software download process?", a: "After purchase, you receive the download link and license key on your registered email." },
-  { q: "Are software updates included?", a: "Yes, updates are included for the duration of the license validity." },
-  { q: "What is the license delivery time?", a: "Instantly. Keys are delivered to your email within minutes of payment confirmation." },
-  { q: "When will I get my physical order delivered?", a: "We sell digital products only — no physical shipping. Everything is delivered by email." },
+  {
+    q: "How are product keys handled?",
+    a: "All license keys are sourced from authorized distributors and delivered instantly via email after payment.",
+  },
+  {
+    q: "Why are your prices lower than retail?",
+    a: "We source licenses through authorized channels, refurbishers, and surplus inventory, then pass the savings to you.",
+  },
+  {
+    q: 'What does "Lifetime" or "Perpetual" license mean?',
+    a: "It means the license is valid forever — no recurring subscription needed.",
+  },
+  {
+    q: "Are order invoices available?",
+    a: "Yes, a GST invoice is emailed to you immediately after purchase and can be downloaded from your dashboard.",
+  },
+  {
+    q: "Do you provide installation support?",
+    a: "Yes, our support team is available on WhatsApp and email to help with installation.",
+  },
+  {
+    q: "How are purchase issues resolved?",
+    a: "Contact support with your order ID — most issues are resolved within hours.",
+  },
+  {
+    q: "What is the software download process?",
+    a: "After purchase, you receive the download link and license key on your registered email.",
+  },
+  {
+    q: "Are software updates included?",
+    a: "Yes, updates are included for the duration of the license validity.",
+  },
+  {
+    q: "What is the license delivery time?",
+    a: "Instantly. Keys are delivered to your email within minutes of payment confirmation.",
+  },
+  {
+    q: "When will I get my physical order delivered?",
+    a: "We sell digital products only — no physical shipping. Everything is delivered by email.",
+  },
 ];
 
 export default function FaqSection() {
@@ -48,10 +78,11 @@ export default function FaqSection() {
                   transition={{
                     layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
                   }}
-                  className={`rounded-2xl overflow-hidden border transition-colors duration-300 ${isOpen
+                  className={`rounded-2xl overflow-hidden border transition-colors duration-300 ${
+                    isOpen
                       ? "bg-navy border-brand shadow-cardHover"
                       : "bg-navy border-navy hover:border-brand/40"
-                    }`}
+                  }`}
                 >
                   <button
                     onClick={() => toggle(i)}
@@ -61,10 +92,11 @@ export default function FaqSection() {
                       {f.q}
                     </span>
                     <span
-                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        isOpen
                           ? "bg-brand text-white rotate-180"
                           : "bg-white/10 text-white group-hover:bg-white/20"
-                        }`}
+                      }`}
                     >
                       {isOpen ? <Minus size={16} /> : <Plus size={16} />}
                     </span>

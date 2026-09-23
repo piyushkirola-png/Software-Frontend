@@ -16,12 +16,12 @@ import { useAuthContext } from "../../lib/AuthContext";
 import Button from "../ui/Button";
 
 const navItems = [
-  { label: "Dashboard",       href: "/user/dashboard", icon: LayoutDashboard },
-  { label: "Orders",          href: "/user/orders",    icon: Package },
-  { label: "License Keys",    href: "/user/keys",      icon: Key },
-  { label: "Downloads",       href: "/user/downloads", icon: Download },
-  { label: "Profile",         href: "/user/profile",   icon: User },
-  { label: "Update Password", href: "/user/password",  icon: Lock },
+  { label: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
+  { label: "Orders", href: "/user/orders", icon: Package },
+  { label: "License Keys", href: "/user/keys", icon: Key },
+  { label: "Downloads", href: "/user/downloads", icon: Download },
+  { label: "Profile", href: "/user/profile", icon: User },
+  { label: "Update Password", href: "/user/password", icon: Lock },
 ];
 
 export default function UserSidebar() {

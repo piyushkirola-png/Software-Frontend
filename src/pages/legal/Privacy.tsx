@@ -42,8 +42,8 @@ export default function Privacy() {
           <p>
             We use industry-standard encryption (SSL/TLS) for all data
             transmission. Your payment card information is never stored on our
-            servers — it is processed directly by our PCI-DSS compliant
-            payment partners.
+            servers — it is processed directly by our PCI-DSS compliant payment
+            partners.
           </p>
         </Section>
 

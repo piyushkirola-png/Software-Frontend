@@ -71,7 +71,9 @@ export default function AdminUsers() {
     const { user } = confirmAction;
     toggleMutation.mutate(user.id, {
       onSuccess: () => {
-        setToast(user.isActive ? `${user.name} deactivated` : `${user.name} activated`);
+        setToast(
+          user.isActive ? `${user.name} deactivated` : `${user.name} activated`,
+        );
         setConfirmAction(null);
       },
       onError: (err: any) => {
@@ -201,14 +203,16 @@ export default function AdminUsers() {
 
                 <div className="col-span-1">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${u.isActive
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      u.isActive
                         ? "bg-success/10 text-success"
                         : "bg-gray-200 text-gray-600"
-                      }`}
+                    }`}
                   >
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${u.isActive ? "bg-success" : "bg-gray-400"
-                        }`}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        u.isActive ? "bg-success" : "bg-gray-400"
+                      }`}
                     />
                     {u.isActive ? "Active" : "Inactive"}
                   </span>
@@ -268,10 +272,11 @@ export default function AdminUsers() {
                             setConfirmAction({ type: "delete", user: u });
                           }
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${u.isActive
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${
+                          u.isActive
                             ? "text-gray-300 cursor-not-allowed"
                             : "text-danger hover:bg-red-50"
-                          }`}
+                        }`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete
@@ -288,7 +293,8 @@ export default function AdminUsers() {
       {!isLoading && !isError && users.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
-            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            Showing{" "}
+            <span className="font-semibold text-navy">{rangeStart}</span>
             {" – "}
             <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
             <span className="font-semibold text-navy">{totalElements}</span>

@@ -19,8 +19,7 @@ export default function ProtectedRoute({ children, roles }: Props) {
 
   if (roles && !roles.includes(user.role as Role)) {
     // Logged in but wrong role → send them to their own dashboard
-    const home =
-      user.role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
+    const home = user.role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
     return <Navigate to={home} replace />;
   }
 

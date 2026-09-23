@@ -24,7 +24,8 @@ export function useInitiatePayment() {
 export function useSimulateSuccess() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (paymentId: number) => paymentService.simulateSuccess(paymentId),
+    mutationFn: (paymentId: number) =>
+      paymentService.simulateSuccess(paymentId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["cart"] });
