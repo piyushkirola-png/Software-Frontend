@@ -40,9 +40,6 @@ export default function WhyChooseUs() {
       <div className="max-w-7xl mx-auto px-4">
         <Reveal>
           <div className="text-center mb-14 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-4">
-              <Shield size={12} /> WHY CHOOSE US
-            </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white">
               Why Softora?
             </h2>

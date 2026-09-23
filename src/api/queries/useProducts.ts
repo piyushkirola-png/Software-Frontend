@@ -9,10 +9,17 @@ export function useFeaturedProducts() {
   });
 }
 
-export function useAllProducts(page = 0, size = 12, sortBy?: string) {
+export function useAllProducts(
+  page = 0,
+  size = 12,
+  sortBy?: string,
+  minPrice?: number,
+  maxPrice?: number,
+) {
   return useQuery({
-    queryKey: ["products", "all", page, size, sortBy],
-    queryFn: () => productService.getAll(page, size, sortBy),
+    queryKey: ["products", "all", page, size, sortBy, minPrice, maxPrice],
+    queryFn: () =>
+      productService.getAll(page, size, sortBy, minPrice, maxPrice),
   });
 }
 
@@ -20,11 +27,30 @@ export function useProductsByCategory(
   slug: string,
   page = 0,
   size = 12,
-  sortBy?: string
+  sortBy?: string,
+  minPrice?: number,
+  maxPrice?: number,
 ) {
   return useQuery({
-    queryKey: ["products", "category", slug, page, size, sortBy],
-    queryFn: () => productService.getByCategory(slug, page, size, sortBy),
+    queryKey: [
+      "products",
+      "category",
+      slug,
+      page,
+      size,
+      sortBy,
+      minPrice,
+      maxPrice,
+    ],
+    queryFn: () =>
+      productService.getByCategory(
+        slug,
+        page,
+        size,
+        sortBy,
+        minPrice,
+        maxPrice,
+      ),
     enabled: !!slug,
   });
 }

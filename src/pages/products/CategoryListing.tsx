@@ -1,30 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, PackageX, ChevronRight } from "lucide-react";
 import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
 import ProductFilters, { FilterState } from "../../components/product/ProductFilters";
 import Reveal from "../../components/animations/Reveal";
+import Pagination from "../../components/ui/Pagination";
 import { useProductsByCategory } from "../../api/queries/useProducts";
 import { useCategory } from "../../api/queries/useCategories";
 import { Product } from "../../types/product";
 import { resolveImageUrl } from "../../lib/upload";
 
+const PAGE_SIZE = 16;
+
 export default function CategoryListing() {
   const { slug = "" } = useParams<{ slug: string }>();
   const [filters, setFilters] = useState<FilterState>({ sortBy: "default" });
+  const [page, setPage] = useState(0);
   const [variantProduct, setVariantProduct] = useState<Product | null>(null);
 
   const { data: category } = useCategory(slug);
   const { data, isLoading, error } = useProductsByCategory(
     slug,
-    0,
-    12,
+    page,
+    PAGE_SIZE,
     filters.sortBy,
+    filters.priceMin,
+    filters.priceMax
   );
 
   const products = data?.content || [];
   const totalElements = data?.totalElements || 0;
+  const totalPages = data?.totalPages || 0;
+
+  const handleFiltersChange = (f: FilterState) => {
+    setFilters(f);
+    setPage(0);
+  };
+
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Reset page when navigating to a different category
+  useEffect(() => {
+    setPage(0);
+  }, [slug]);
 
   const toCardType = (p: Product): ProductCardType => ({
     id: p.id,
@@ -66,12 +88,25 @@ export default function CategoryListing() {
         <aside className="lg:sticky lg:top-24 h-fit">
           <ProductFilters
             filters={filters}
-            onChange={setFilters}
-            totalResults={totalElements}
+            onChange={handleFiltersChange}
           />
         </aside>
 
         <div>
+          {!isLoading && !error && totalElements > 0 && (
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted">
+                Showing{" "}
+                <b className="text-navy">
+                  {products.length > 0 ? page * PAGE_SIZE + 1 : 0}
+                </b>
+                –
+                <b className="text-navy">{page * PAGE_SIZE + products.length}</b> of{" "}
+                <b className="text-navy">{totalElements}</b> results
+              </p>
+            </div>
+          )}
+
           {isLoading && (
             <div className="bg-white rounded-2xl border border-gray-100 p-20 flex items-center justify-center">
               <Loader2 className="w-7 h-7 text-brand animate-spin" />
@@ -112,6 +147,14 @@ export default function CategoryListing() {
                 ))}
               </div>
             </Reveal>
+          )}
+
+          {!isLoading && !error && totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={handlePageChange}
+            />
           )}
         </div>
       </div>

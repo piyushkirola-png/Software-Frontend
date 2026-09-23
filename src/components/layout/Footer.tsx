@@ -116,7 +116,7 @@ export default function Footer() {
 
         {/* Account */}
         <div>
-          <h4 className="text-white font-bold mb-4 text-sm">My Account</h4>
+          <h4 className="text-white font-bold mb-4 text-sm">Account Info</h4>
           <ul className="space-y-2.5">
             {accountLinks.map((l) => (
               <li key={l.label}>

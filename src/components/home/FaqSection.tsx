@@ -24,13 +24,10 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="bg-white py-16 md:py-20">
+    <section className="bg-white pt-16 md:pt-20 pb-10 md:pb-12">
       <div className="max-w-6xl mx-auto px-4">
         <Reveal>
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand/10 text-brand text-xs font-bold px-4 py-1.5 rounded-full mb-4">
-              <HelpCircle size={12} /> HELP CENTER
-            </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-navy">
               Frequently Asked Questions
             </h2>
@@ -51,11 +48,10 @@ export default function FaqSection() {
                   transition={{
                     layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
                   }}
-                  className={`rounded-2xl overflow-hidden border transition-colors duration-300 ${
-                    isOpen
+                  className={`rounded-2xl overflow-hidden border transition-colors duration-300 ${isOpen
                       ? "bg-navy border-brand shadow-cardHover"
                       : "bg-navy border-navy hover:border-brand/40"
-                  }`}
+                    }`}
                 >
                   <button
                     onClick={() => toggle(i)}
@@ -65,11 +61,10 @@ export default function FaqSection() {
                       {f.q}
                     </span>
                     <span
-                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isOpen
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
                           ? "bg-brand text-white rotate-180"
                           : "bg-white/10 text-white group-hover:bg-white/20"
-                      }`}
+                        }`}
                     >
                       {isOpen ? <Minus size={16} /> : <Plus size={16} />}
                     </span>

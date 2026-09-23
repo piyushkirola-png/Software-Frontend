@@ -80,28 +80,29 @@ export default function ProductCard({ product }: Props) {
           </h3>
         </Link>
 
-        {/* Price — inline row */}
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
+        {/* Price */}
+        <div className="mt-3 flex items-baseline gap-2 whitespace-nowrap">
           {product.mrp && product.mrp > product.price && (
-            <span className="text-sm text-gray-400 line-through">
+            <span className="text-xs text-black line-through">
               ₹{product.mrp.toFixed(2)}
             </span>
           )}
-          <span className="text-sm font-extrabold text-navy">
+          <span className="text-sm font-extrabold text-blue-600">
             ₹{product.price.toFixed(2)}
           </span>
-          <span className="text-sm font-bold text-brand">Inc GST</span>
+          <span className="text-[10px] font-semibold text-blue-600">
+            Inc GST
+          </span>
         </div>
 
         <div className="mt-auto pt-4">
           <button
             onClick={handleAdd}
             disabled={addToCart.isPending}
-            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${
-              added
+            className={`w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition ${added
                 ? "bg-success text-white"
                 : "bg-brand hover:bg-brand-dark text-white"
-            } disabled:opacity-60`}
+              } disabled:opacity-60`}
           >
             {addToCart.isPending ? (
               <Loader2 size={16} className="animate-spin" />

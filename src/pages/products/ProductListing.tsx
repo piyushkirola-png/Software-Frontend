@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
-import { Loader2, PackageX } from "lucide-react";
+import { Navigate, useSearchParams, Link } from "react-router-dom";
+import { Loader2, PackageX, ChevronRight } from "lucide-react";
 import ProductCard, { ProductCardType } from "../../components/product/ProductCard";
 import VariantModal, { Variant } from "../../components/product/VariantModal";
 import ProductFilters, { FilterState } from "../../components/product/ProductFilters";
 import Reveal from "../../components/animations/Reveal";
+import Pagination from "../../components/ui/Pagination";
 import { useAllProducts } from "../../api/queries/useProducts";
 import { Product } from "../../types/product";
 import { resolveImageUrl } from "../../lib/upload";
+
+const PAGE_SIZE = 16;
 
 export default function ProductListing() {
   const [params] = useSearchParams();
@@ -25,13 +28,30 @@ function ProductListingInner() {
   const search = params.get("q") || "";
 
   const [filters, setFilters] = useState<FilterState>({ sortBy: "default" });
-  const [page] = useState(0);
+  const [page, setPage] = useState(0);
+
+  const handleFiltersChange = (f: FilterState) => {
+    setFilters(f);
+    setPage(0);
+  };
   const [variantProduct, setVariantProduct] = useState<Product | null>(null);
 
-  const { data, isLoading, error } = useAllProducts(page, 12, filters.sortBy);
+  const { data, isLoading, error } = useAllProducts(
+    page,
+    PAGE_SIZE,
+    filters.sortBy,
+    filters.priceMin,
+    filters.priceMax
+  );
 
   const products = data?.content || [];
   const totalElements = data?.totalElements || 0;
+  const totalPages = data?.totalPages || 0;
+
+  const handlePageChange = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const toCardType = (p: Product): ProductCardType => ({
     id: p.id,
@@ -55,28 +75,37 @@ function ProductListingInner() {
   return (
     <div className="bg-soft min-h-screen">
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-navy">
-            All Products
-          </h1>
-          <p className="text-sm text-muted mt-1">
-            {totalElements > 0
-              ? `${totalElements} products available`
-              : "Browse our full catalog"}
-          </p>
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-1.5 text-xs text-muted">
+            <Link to="/" className="hover:text-brand transition">
+              Home
+            </Link>
+            <ChevronRight size={12} />
+            <span className="text-navy font-semibold">All Products</span>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-[280px_1fr] gap-6">
         <aside className="lg:sticky lg:top-24 h-fit">
-          <ProductFilters
-            filters={filters}
-            onChange={setFilters}
-            totalResults={totalElements}
-          />
+          <ProductFilters filters={filters} onChange={handleFiltersChange} />
         </aside>
 
         <div>
+          {!isLoading && !error && totalElements > 0 && (
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted">
+                Showing{" "}
+                <b className="text-navy">
+                  {products.length > 0 ? page * PAGE_SIZE + 1 : 0}
+                </b>
+                –
+                <b className="text-navy">{page * PAGE_SIZE + products.length}</b> of{" "}
+                <b className="text-navy">{totalElements}</b> results
+              </p>
+            </div>
+          )}
+
           {isLoading && (
             <div className="bg-white rounded-2xl border border-gray-100 p-20 flex items-center justify-center">
               <Loader2 className="w-7 h-7 text-brand animate-spin" />
@@ -115,6 +144,14 @@ function ProductListingInner() {
                 ))}
               </div>
             </Reveal>
+          )}
+
+          {!isLoading && !error && totalPages > 1 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onChange={handlePageChange}
+            />
           )}
         </div>
       </div>

@@ -6,25 +6,49 @@ export const productService = {
     return apiGet<Product[]>("/products/featured");
   },
 
-  async getAll(page = 0, size = 12, sortBy?: string): Promise<PagedResponse<Product>> {
-    return apiGet<PagedResponse<Product>>("/products", { page, size, sortBy });
+  async getAll(
+    page = 0,
+    size = 12,
+    sortBy?: string,
+    minPrice?: number,
+    maxPrice?: number,
+  ): Promise<PagedResponse<Product>> {
+    return apiGet<PagedResponse<Product>>("/products", {
+      page,
+      size,
+      sortBy,
+      minPrice,
+      maxPrice,
+    });
   },
 
   async getByCategory(
     slug: string,
     page = 0,
     size = 12,
-    sortBy?: string
+    sortBy?: string,
+    minPrice?: number,
+    maxPrice?: number,
   ): Promise<PagedResponse<Product>> {
     return apiGet<PagedResponse<Product>>(`/products/category/${slug}`, {
       page,
       size,
       sortBy,
+      minPrice,
+      maxPrice,
     });
   },
 
-  async search(q: string, page = 0, size = 12): Promise<PagedResponse<Product>> {
-    return apiGet<PagedResponse<Product>>("/products/search", { q, page, size });
+  async search(
+    q: string,
+    page = 0,
+    size = 12,
+  ): Promise<PagedResponse<Product>> {
+    return apiGet<PagedResponse<Product>>("/products/search", {
+      q,
+      page,
+      size,
+    });
   },
 
   async getBySlug(slug: string): Promise<Product> {

@@ -33,12 +33,9 @@ export default function FeaturedDeals() {
     })) || [];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-16 md:py-20">
+    <section className="max-w-7xl mx-auto px-4 pt-16 md:pt-20 pb-8 md:pb-10">
       <Reveal>
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-brand/10 text-brand text-xs font-bold px-4 py-1.5 rounded-full mb-4">
-            <Flame size={12} /> LIMITED TIME DEALS
-          </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-navy">
             Top Software Deals
           </h2>
@@ -86,7 +83,7 @@ export default function FeaturedDeals() {
 
       {products && products.length > 0 && (
         <Reveal delay={200}>
-          <div className="flex justify-center mt-12">
+          <div className="flex justify-end mt-8">
             <Link
               to="/products"
               className="inline-flex items-center gap-2 border-2 border-brand text-brand font-bold px-7 py-3 rounded-xl hover:bg-brand hover:text-white transition"

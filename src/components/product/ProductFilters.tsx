@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { ChevronDown, X, Check } from "lucide-react";
+import { notify } from "../ui/toast";
+import { useCategories } from "../../api/queries/useCategories";
 
 export interface FilterState {
   sortBy: string;
@@ -26,18 +29,27 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
   const [priceMin, setPriceMin] = useState(filters.priceMin?.toString() || "");
   const [priceMax, setPriceMax] = useState(filters.priceMax?.toString() || "");
 
+  const { slug: activeSlug } = useParams<{ slug: string }>();
+  const { data: categories } = useCategories();
+
   const applyPrice = () => {
+    if (priceMin && priceMax && Number(priceMin) > Number(priceMax)) {
+      notify.error("Min price cannot exceed Max price");
+      return;
+    }
     onChange({
       ...filters,
       priceMin: priceMin ? Number(priceMin) : undefined,
       priceMax: priceMax ? Number(priceMax) : undefined,
     });
+    notify.success("Filter applied successfully");
   };
 
   const reset = () => {
     setPriceMin("");
     setPriceMax("");
     onChange({ sortBy: "default" });
+    notify.success("Filter cleared successfully");
   };
 
   return (
@@ -55,9 +67,8 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
       </button>
 
       <div
-        className={`${
-          open ? "block" : "hidden"
-        } md:block bg-white border border-gray-100 rounded-xl p-5 shadow-card`}
+        className={`${open ? "block" : "hidden"
+          } md:block bg-white border border-gray-100 rounded-xl p-5 shadow-card min-h-[600px]`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -79,7 +90,10 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
           </label>
           <select
             value={filters.sortBy}
-            onChange={(e) => onChange({ ...filters, sortBy: e.target.value })}
+            onChange={(e) => {
+              onChange({ ...filters, sortBy: e.target.value });
+              notify.success("Sort applied successfully");
+            }}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand"
           >
             {SORT_OPTIONS.map((o) => (
@@ -120,11 +134,41 @@ export default function ProductFilters({ filters, onChange, totalResults }: Prop
           </button>
         </div>
 
-        {totalResults !== undefined && (
-          <div className="text-xs text-muted pt-4 border-t border-gray-100">
-            <b className="text-navy">{totalResults}</b> products found
+        {/* Product Categories */}
+        <div className="mt-6 pt-5 border-t border-gray-100">
+          <label className="block text-xs font-bold text-navy uppercase mb-3">
+            Product Categories
+          </label>
+          <div className="flex flex-col gap-1">
+            <Link
+              to="/products"
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${!activeSlug
+                ? "bg-brand/10 text-brand font-semibold"
+                : "text-navy hover:bg-gray-50"
+                }`}
+            >
+              <span>All Products</span>
+              {!activeSlug && <Check size={14} />}
+            </Link>
+
+            {categories?.map((c) => {
+              const isActive = activeSlug === c.slug;
+              return (
+                <Link
+                  key={c.id}
+                  to={`/products/category/${c.slug}`}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ${isActive
+                    ? "bg-brand/10 text-brand font-semibold"
+                    : "text-navy hover:bg-gray-50"
+                    }`}
+                >
+                  <span>{c.name}</span>
+                  {isActive && <Check size={14} />}
+                </Link>
+              );
+            })}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

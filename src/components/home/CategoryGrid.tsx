@@ -12,9 +12,6 @@ export default function CategoryGrid() {
       <div className="max-w-7xl mx-auto px-4">
         <Reveal>
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-navy/5 text-navy text-xs font-bold px-4 py-1.5 rounded-full mb-4">
-              <LayoutGrid size={12} /> BROWSE BY CATEGORY
-            </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-navy">
               Top Categories
             </h2>
