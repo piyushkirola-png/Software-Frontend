@@ -400,7 +400,7 @@ export default function AdminPayments() {
       <Modal
         open={!!viewing}
         onClose={() => setViewing(null)}
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-5xl"
       >
         {viewing && <PaymentDetail payment={viewing} onCopy={setToast} />}
       </Modal>
@@ -463,6 +463,7 @@ function PaymentDetail({
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div>
         <h3 className="text-lg font-bold text-navy">Payment {payment.id}</h3>
         <p className="text-xs text-muted mt-0.5">
@@ -470,93 +471,97 @@ function PaymentDetail({
         </p>
       </div>
 
-      {/* Top summary */}
-      <div className="grid grid-cols-2 gap-4 text-sm border-t border-b border-gray-100 py-4">
-        <div>
-          <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
-            Amount
+      {/* Two-column body */}
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 border-t border-gray-100 pt-5">
+        {/* ─── LEFT: All info ─── */}
+        <div className="space-y-4">
+          {/* Amount + Status */}
+          <div className="grid grid-cols-2 gap-4 text-sm border-b border-gray-100 pb-4">
+            <div>
+              <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
+                Amount
+              </div>
+              <div className="font-bold text-navy text-lg">
+                ₹{payment.amount?.toFixed(2)} {payment.currency}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
+                Status
+              </div>
+              <PaymentStatusBadge status={payment.status} />
+            </div>
           </div>
-          <div className="font-bold text-navy text-lg">
-            ₹{payment.amount?.toFixed(2)} {payment.currency}
-          </div>
+
+          <DetailRow
+            label="Order Number"
+            value={payment.orderNumber}
+            onCopy={() => copy(payment.orderNumber, "order")}
+            copied={copied === "order"}
+          />
+
+          <DetailRow label="Gateway" value={payment.gateway} />
+
+          {payment.gatewayOrderId && (
+            <DetailRow
+              label="Gateway Order ID"
+              value={payment.gatewayOrderId}
+              mono
+              onCopy={() => copy(payment.gatewayOrderId!, "gwo")}
+              copied={copied === "gwo"}
+            />
+          )}
+
+          {payment.gatewayPaymentId && (
+            <DetailRow
+              label="Gateway Payment ID"
+              value={payment.gatewayPaymentId}
+              mono
+              onCopy={() => copy(payment.gatewayPaymentId!, "gwp")}
+              copied={copied === "gwp"}
+            />
+          )}
+
+          {payment.paymentLink && (
+            <div>
+              <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
+                Payment Link
+              </div>
+              <a
+                href={payment.paymentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline break-all"
+              >
+                {payment.paymentLink}
+              </a>
+            </div>
+          )}
+
+          {payment.failureReason && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-1">
+                Failure Reason
+              </div>
+              <div className="text-xs text-red-600">
+                {payment.failureReason}
+              </div>
+            </div>
+          )}
         </div>
-        <div>
-          <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
-            Status
+
+        {/* ─── RIGHT: Raw response ─── */}
+        {payment.rawResponse && (
+          <div>
+            <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
+              Raw Gateway Response
+            </div>
+            <pre className="bg-navy text-white text-[10px] font-mono rounded-lg p-3 max-h-[420px] overflow-auto whitespace-pre-wrap break-all">
+              {prettyJson(payment.rawResponse)}
+            </pre>
           </div>
-          <PaymentStatusBadge status={payment.status} />
-        </div>
+        )}
       </div>
-
-      {/* Order */}
-      <DetailRow
-        label="Order Number"
-        value={payment.orderNumber}
-        onCopy={() => copy(payment.orderNumber, "order")}
-        copied={copied === "order"}
-      />
-
-      {/* Gateway */}
-      <DetailRow label="Gateway" value={payment.gateway} />
-
-      {payment.gatewayOrderId && (
-        <DetailRow
-          label="Gateway Order ID"
-          value={payment.gatewayOrderId}
-          mono
-          onCopy={() => copy(payment.gatewayOrderId!, "gwo")}
-          copied={copied === "gwo"}
-        />
-      )}
-
-      {payment.gatewayPaymentId && (
-        <DetailRow
-          label="Gateway Payment ID"
-          value={payment.gatewayPaymentId}
-          mono
-          onCopy={() => copy(payment.gatewayPaymentId!, "gwp")}
-          copied={copied === "gwp"}
-        />
-      )}
-
-      {/* Payment link */}
-      {payment.paymentLink && (
-        <div>
-          <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
-            Payment Link
-          </div>
-          <a
-            href={payment.paymentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline break-all"
-          >
-            {payment.paymentLink}
-          </a>
-        </div>
-      )}
-
-      {/* Failure reason */}
-      {payment.failureReason && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <div className="text-[11px] font-bold text-red-600 uppercase tracking-wider mb-1">
-            Failure Reason
-          </div>
-          <div className="text-xs text-red-600">{payment.failureReason}</div>
-        </div>
-      )}
-
-      {/* Raw response */}
-      {payment.rawResponse && (
-        <div>
-          <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
-            Raw Gateway Response
-          </div>
-          <pre className="bg-navy text-white text-[10px] font-mono rounded-lg p-3 max-h-60 overflow-auto whitespace-pre-wrap break-all">
-            {prettyJson(payment.rawResponse)}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }
