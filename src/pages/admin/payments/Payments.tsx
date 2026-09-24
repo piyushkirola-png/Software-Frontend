@@ -472,8 +472,8 @@ function PaymentDetail({
       </div>
 
       {/* Two-column body */}
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 border-t border-gray-100 pt-5">
-        {/* ─── LEFT: All info ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-gray-100 pt-5">
+        {/* All info */}
         <div className="space-y-4">
           {/* Amount + Status */}
           <div className="grid grid-cols-2 gap-4 text-sm border-b border-gray-100 pb-4">
@@ -485,7 +485,7 @@ function PaymentDetail({
                 ₹{payment.amount?.toFixed(2)} {payment.currency}
               </div>
             </div>
-            <div>
+            <div className="text-right pr-6">
               <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
                 Status
               </div>

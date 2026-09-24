@@ -25,7 +25,7 @@ import { orderService } from "../../../api/services/orderService";
 import { Order } from "../../../types/order";
 import { getErrorMessage } from "../../../lib/api-client";
 
-type StatusFilter = "ALL" | "PENDING" | "SUCCESS" | "FAILED";
+type StatusFilter = "ALL" | "SUCCESS" | "PENDING" | "FAILED";
 
 export default function AdminOrders() {
   const [page, setPage] = useState(0);
@@ -262,11 +262,10 @@ export default function AdminOrders() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
                   ? "border-brand/40 bg-brand/5 text-brand"
                   : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -319,27 +318,27 @@ export default function AdminOrders() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="ALL">All</option>
-                      <option value="PENDING">Pending</option>
-                      <option value="SUCCESS">Success</option>
-                      <option value="FAILED">Failed</option>
+                      <option value="SUCCESS">SUCCESS</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="FAILED">FAILED</option>
                     </select>
                   </div>
 
-                  {/* 🆕 Customer name / email */}
+                  {/* Customer name / email */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Customer (name or email)
+                      Customer (Email)
                     </label>
                     <input
                       type="text"
                       value={draftCustomer}
                       onChange={(e) => setDraftCustomer(e.target.value)}
-                      placeholder="John / john@example.com"
+                      placeholder="john@example.com"
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
 
-                  {/* 🆕 Product name */}
+                  {/* Product name */}
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Product name
@@ -779,11 +778,10 @@ export default function AdminOrders() {
                   <button
                     onClick={handleStatusConfirm}
                     disabled={updateStatus.isPending}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${
-                      confirmState.newStatus === "FAILED"
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.newStatus === "FAILED"
                         ? "bg-red-600 hover:bg-red-700"
                         : "bg-brand hover:bg-brand-dark"
-                    }`}
+                      }`}
                   >
                     {updateStatus.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

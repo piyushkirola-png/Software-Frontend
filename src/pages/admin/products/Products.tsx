@@ -49,8 +49,6 @@ const DURATION_OPTIONS = ["1 Year", "3 Year"];
 export default function AdminProducts() {
   const { showToast } = useAuthContext();
   const [page, setPage] = useState(0);
-
-  // ── APPLIED filters ─────────────────────────────
   const [filterName, setFilterName] = useState("");
   const [filterCategory, setFilterCategory] = useState<number | "ALL">("ALL");
   const [filterStatus, setFilterStatus] = useState<
@@ -91,8 +89,6 @@ export default function AdminProducts() {
 
   const [toast, setToast] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
-
-  // ── DRAFT filters (popover) ─────────────────────
   const [draftName, setDraftName] = useState("");
   const [draftCategory, setDraftCategory] = useState<number | "ALL">("ALL");
   const [draftStatus, setDraftStatus] = useState<"ALL" | "active" | "inactive">(
@@ -105,14 +101,12 @@ export default function AdminProducts() {
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // ── Toast auto-dismiss ──────────────────────────
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  // ── Close popover on outside click / ESC ────────
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
@@ -389,8 +383,8 @@ export default function AdminProducts() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="ALL">All</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
+                      <option value="active">ACTIVE</option>
+                      <option value="inactive">INACTIVE</option>
                     </select>
                   </div>
 
