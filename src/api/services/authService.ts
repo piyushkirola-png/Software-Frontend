@@ -14,8 +14,12 @@ export const authService = {
     return apiPost<AuthResponse>("/auth/login", data);
   },
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    return apiPost<AuthResponse>("/auth/register", data);
+  async register(data: RegisterRequest): Promise<{ email: string }> {
+    return apiPost<{ email: string }>("/auth/register", data);
+  },
+
+  async verifySignup(data: VerifyOtpRequest): Promise<AuthResponse> {
+    return apiPost<AuthResponse>("/auth/verify-signup", data);
   },
 
   async sendOtp(data: SendOtpRequest): Promise<void> {

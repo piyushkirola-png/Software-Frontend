@@ -18,6 +18,52 @@ export const orderService = {
     return apiGet<PagedResponse<Order>>("/orders/paginated", { page, size });
   },
 
+  async getMyOrdersFiltered(
+    page = 0,
+    size = 10,
+    orderNumber?: string,
+    status?: string,
+    minTotal?: number,
+    maxTotal?: number,
+  ): Promise<PagedResponse<Order>> {
+    const params: Record<string, unknown> = { page, size };
+    if (orderNumber && orderNumber.trim())
+      params.orderNumber = orderNumber.trim();
+    if (status && status !== "ALL") params.status = status;
+    if (minTotal !== undefined) params.minTotal = minTotal;
+    if (maxTotal !== undefined) params.maxTotal = maxTotal;
+    return apiGet<PagedResponse<Order>>("/orders/filtered", params);
+  },
+
+  async exportMyOrdersCsv(
+    orderNumber?: string,
+    status?: string,
+    minTotal?: number,
+    maxTotal?: number,
+  ): Promise<void> {
+    const params = new URLSearchParams();
+    if (orderNumber && orderNumber.trim())
+      params.append("orderNumber", orderNumber.trim());
+    if (status && status !== "ALL") params.append("status", status);
+    if (minTotal !== undefined) params.append("minTotal", String(minTotal));
+    if (maxTotal !== undefined) params.append("maxTotal", String(maxTotal));
+
+    const res = await apiClient.get(`/orders/export-csv?${params}`, {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(
+      new Blob([res.data], { type: "text/csv" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "my-orders.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
   async getById(orderId: number): Promise<Order> {
     return apiGet<Order>(`/orders/${orderId}`);
   },
@@ -25,8 +71,6 @@ export const orderService = {
   async getByNumber(orderNumber: string): Promise<Order> {
     return apiGet<Order>(`/orders/number/${orderNumber}`);
   },
-
-  // ============ ADMIN ============
 
   async exportCsv(): Promise<void> {
     const res = await apiClient.get("/admin/orders/export", {

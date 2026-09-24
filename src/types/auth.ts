@@ -9,7 +9,7 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
 }
 
 export interface AuthResponse {
@@ -23,20 +23,24 @@ export interface AuthResponse {
   avatarUrl?: string | null;
 }
 
-export interface SendOtpRequest {
-  email: string;
-  purpose?: string;
-}
-
 export interface VerifyOtpRequest {
   email: string;
   code: string;
+}
+
+export interface SendOtpRequest {
+  email: string;
+  purpose?: string;
 }
 
 export interface ResetPasswordRequest {
   email: string;
   code: string;
   newPassword: string;
+}
+
+export interface RegisterResponse {
+  email: string;
 }
 
 export interface AuthState {

@@ -18,14 +18,12 @@ import { tokenStorage } from "./token-storage";
 import { authService } from "../api/services/authService";
 
 interface AuthContextValue extends AuthState {
-  // Auth actions
   login: (data: LoginRequest) => Promise<AuthResponse>;
-  register: (data: RegisterRequest) => Promise<AuthResponse>;
+  register: (data: RegisterRequest) => Promise<{ email: string }>;
+  verifySignup: (email: string, code: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   setUser: (user: User | null) => void;
-
-  // Global toast (Astro-style)
   toast: string | null;
   showToast: (message: string) => void;
   dismissToast: () => void;
@@ -55,7 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Auto-dismiss toast after 1s (Astro-style)
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 1000);
@@ -103,6 +100,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       try {
         const res = await authService.register(data);
+        return res;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const verifySignup = useCallback(
+    async (email: string, code: string) => {
+      setIsLoading(true);
+      try {
+        const res = await authService.verifySignup({ email, code });
         persistAuth(res);
         return res;
       } finally {
@@ -155,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       register,
+      verifySignup,
       logout,
       refreshProfile,
       setUser,
@@ -169,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast,
       login,
       register,
+      verifySignup,
       logout,
       refreshProfile,
       setUser,
@@ -187,5 +199,4 @@ export function useAuthContext() {
   return ctx;
 }
 
-/** Alias for Astro-style imports */
 export const useAuth = useAuthContext;

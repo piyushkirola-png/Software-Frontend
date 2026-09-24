@@ -51,7 +51,7 @@ export default function LicenseKeys() {
           My License Keys
         </h1>
         <p className="text-muted mt-1 text-sm">
-          {flatKeys.length} key{flatKeys.length !== 1 ? "s" : ""} available
+          View and manage your license keys
         </p>
       </div>
 

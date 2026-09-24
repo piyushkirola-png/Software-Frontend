@@ -10,11 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  Clock,
   CreditCard,
   Copy,
   Check,
-  ExternalLink,
   Eye,
 } from "lucide-react";
 import Modal from "../../../components/ui/Modal";
@@ -22,17 +20,14 @@ import Reveal from "../../../components/animations/Reveal";
 import { useAdminPayments } from "../../../api/queries/useAdmin";
 import type { Payment } from "../../../types/payment";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export default function AdminPayments() {
   const [page, setPage] = useState(0);
-
-  // Applied filters
   const [status, setStatus] = useState("");
   const [gateway, setGateway] = useState("");
   const [search, setSearch] = useState("");
 
-  // Draft filters
   const [filterOpen, setFilterOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState("");
   const [draftGateway, setDraftGateway] = useState("");
@@ -129,7 +124,7 @@ export default function AdminPayments() {
 
   return (
     <div className="space-y-5">
-      {/* ============ HEADER ============ */}
+      {/* HEADER */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-navy">Payments</h1>
@@ -143,11 +138,10 @@ export default function AdminPayments() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -198,9 +192,9 @@ export default function AdminPayments() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="">All</option>
-                      <option value="SUCCESS">Success</option>
-                      <option value="PENDING">Pending</option>
-                      <option value="FAILED">Failed</option>
+                      <option value="SUCCESS">SUCCESS</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="FAILED">FAILED</option>
                     </select>
                   </div>
 
@@ -215,10 +209,10 @@ export default function AdminPayments() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="">All</option>
-                      <option value="CASHFREE">Cashfree</option>
-                      <option value="RAZORPAY">Razorpay</option>
-                      <option value="PAYU">PayU</option>
-                      <option value="SABPAISA">SabPaisa</option>
+                      <option value="CASHFREE">CASHFREE</option>
+                      <option value="RAZORPAY">RAZORPAY</option>
+                      <option value="PAYU">PAYU</option>
+                      <option value="SABPAISA">SABPAISA</option>
                     </select>
                   </div>
                 </div>
@@ -255,14 +249,14 @@ export default function AdminPayments() {
         </div>
       </div>
 
-      {/* ============ LOADING ============ */}
+      {/* LOADING */}
       {isLoading && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
-      {/* ============ ERROR ============ */}
+      {/* ERROR */}
       {isError && (
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
           <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
@@ -276,7 +270,7 @@ export default function AdminPayments() {
         </div>
       )}
 
-      {/* ============ EMPTY ============ */}
+      {/* EMPTY */}
       {!isLoading && !isError && payments.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
@@ -293,7 +287,7 @@ export default function AdminPayments() {
         </div>
       )}
 
-      {/* ============ TABLE ============ */}
+      {/* TABLE */}
       {!isLoading && !isError && payments.length > 0 && (
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -349,7 +343,6 @@ export default function AdminPayments() {
                               className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
                               title="Open Payment Link"
                             >
-                              <ExternalLink size={14} />
                             </a>
                           )}
                           <button
@@ -370,7 +363,7 @@ export default function AdminPayments() {
         </Reveal>
       )}
 
-      {/* ============ PAGINATION ============ */}
+      {/* PAGINATION */}
       {!isLoading && !isError && payments.length > 0 && (
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
@@ -403,7 +396,7 @@ export default function AdminPayments() {
         </div>
       )}
 
-      {/* ============ DETAIL MODAL ============ */}
+      {/* DETAIL MODAL */}
       <Modal
         open={!!viewing}
         onClose={() => setViewing(null)}
@@ -412,7 +405,7 @@ export default function AdminPayments() {
         {viewing && <PaymentDetail payment={viewing} onCopy={setToast} />}
       </Modal>
 
-      {/* ============ TOAST ============ */}
+      {/* TOAST */}
       {createPortal(
         <AnimatePresence>
           {toast && (
@@ -435,7 +428,7 @@ export default function AdminPayments() {
   );
 }
 
-// ============ SUB COMPONENTS ============
+// SUB COMPONENTS
 function PaymentStatusBadge({ status }: { status: string }) {
   const cls =
     status === "SUCCESS"
@@ -471,7 +464,7 @@ function PaymentDetail({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-bold text-navy">Payment #{payment.id}</h3>
+        <h3 className="text-lg font-bold text-navy">Payment {payment.id}</h3>
         <p className="text-xs text-muted mt-0.5">
           {new Date(payment.createdAt).toLocaleString("en-IN")}
         </p>
@@ -539,7 +532,6 @@ function PaymentDetail({
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline break-all"
           >
             {payment.paymentLink}
-            <ExternalLink size={11} className="shrink-0" />
           </a>
         </div>
       )}

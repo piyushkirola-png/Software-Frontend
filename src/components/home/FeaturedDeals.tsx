@@ -40,9 +40,9 @@ export default function FeaturedDeals() {
           <h2 className="text-3xl md:text-4xl font-extrabold text-navy">
             Top Software Deals
           </h2>
-          <p className="text-muted mt-3 text-sm md:text-base max-w-2xl mx-auto">
-            Instant license delivery with GST invoice to your email ID
-            (step-by-step instructions included).
+
+          <p className="text-muted mt-3 text-sm md:text-base mx-auto whitespace-nowrap">
+            Instant license delivery with GST invoice to your email ID (step-by-step instructions included).
           </p>
         </div>
       </Reveal>

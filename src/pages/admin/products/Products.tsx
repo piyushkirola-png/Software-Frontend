@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -50,7 +50,28 @@ export default function AdminProducts() {
   const { showToast } = useAuthContext();
   const [page, setPage] = useState(0);
 
-  const { data, isLoading, refetch, isRefetching } = useAdminProducts(page, 10);
+  // ── APPLIED filters ─────────────────────────────
+  const [filterName, setFilterName] = useState("");
+  const [filterCategory, setFilterCategory] = useState<number | "ALL">("ALL");
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "active" | "inactive"
+  >("ALL");
+  const [filterLicense, setFilterLicense] = useState<string>("ALL");
+  const [filterPriceMin, setFilterPriceMin] = useState<string>("");
+  const [filterPriceMax, setFilterPriceMax] = useState<string>("");
+  const [filterSort, setFilterSort] = useState<string>("newest");
+
+  const { data, isLoading, refetch, isRefetching } = useAdminProducts(
+    page,
+    10,
+    filterName,
+    filterCategory === "ALL" ? undefined : filterCategory,
+    filterStatus === "ALL" ? undefined : filterStatus,
+    filterLicense === "ALL" ? undefined : filterLicense,
+    filterPriceMin ? Number(filterPriceMin) : undefined,
+    filterPriceMax ? Number(filterPriceMax) : undefined,
+    filterSort,
+  );
   const { data: categories = [] } = useAdminCategories();
 
   const create = useCreateProduct();
@@ -71,16 +92,6 @@ export default function AdminProducts() {
   const [toast, setToast] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // ── APPLIED filters ─────────────────────────────
-  const [filterName, setFilterName] = useState("");
-  const [filterCategory, setFilterCategory] = useState<number | "ALL">("ALL");
-  const [filterStatus, setFilterStatus] = useState<
-    "ALL" | "active" | "inactive"
-  >("ALL");
-  const [filterLicense, setFilterLicense] = useState<string>("ALL");
-  const [filterPriceMin, setFilterPriceMin] = useState<string>("");
-  const [filterPriceMax, setFilterPriceMax] = useState<string>("");
-
   // ── DRAFT filters (popover) ─────────────────────
   const [draftName, setDraftName] = useState("");
   const [draftCategory, setDraftCategory] = useState<number | "ALL">("ALL");
@@ -90,6 +101,7 @@ export default function AdminProducts() {
   const [draftLicense, setDraftLicense] = useState<string>("ALL");
   const [draftPriceMin, setDraftPriceMin] = useState<string>("");
   const [draftPriceMax, setDraftPriceMax] = useState<string>("");
+  const [draftSort, setDraftSort] = useState<string>("newest");
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -131,35 +143,9 @@ export default function AdminProducts() {
   const totalPages = data?.totalPages || 1;
   const totalElements = data?.totalElements || 0;
 
-  const filtered = useMemo(() => {
-    const min = filterPriceMin ? Number(filterPriceMin) : null;
-    const max = filterPriceMax ? Number(filterPriceMax) : null;
-    const q = filterName.trim().toLowerCase();
-
-    return products.filter((p) => {
-      if (q && !p.title.toLowerCase().includes(q)) return false;
-      if (filterCategory !== "ALL" && p.categoryId !== filterCategory)
-        return false;
-      if (filterStatus === "active" && !p.isActive) return false;
-      if (filterStatus === "inactive" && p.isActive) return false;
-      if (filterLicense !== "ALL" && p.licenseType !== filterLicense)
-        return false;
-      if (min !== null && p.price < min) return false;
-      if (max !== null && p.price > max) return false;
-      return true;
-    });
-  }, [
-    products,
-    filterName,
-    filterCategory,
-    filterStatus,
-    filterLicense,
-    filterPriceMin,
-    filterPriceMax,
-  ]);
-
-  const rangeStart = filtered.length === 0 ? 0 : page * 20 + 1;
-  const rangeEnd = page * 20 + filtered.length;
+  const filtered = products;
+  const rangeStart = filtered.length === 0 ? 0 : page * 10 + 1;
+  const rangeEnd = page * 10 + filtered.length;
 
   const hasFilters =
     filterName !== "" ||
@@ -167,7 +153,8 @@ export default function AdminProducts() {
     filterStatus !== "ALL" ||
     filterLicense !== "ALL" ||
     filterPriceMin !== "" ||
-    filterPriceMax !== "";
+    filterPriceMax !== "" ||
+    filterSort !== "newest";
 
   const licenseTypes = LICENSE_OPTIONS;
 
@@ -257,6 +244,7 @@ export default function AdminProducts() {
     setDraftLicense(filterLicense);
     setDraftPriceMin(filterPriceMin);
     setDraftPriceMax(filterPriceMax);
+    setDraftSort(filterSort);
     setFilterOpen(true);
   };
 
@@ -268,6 +256,7 @@ export default function AdminProducts() {
     setDraftLicense(filterLicense);
     setDraftPriceMin(filterPriceMin);
     setDraftPriceMax(filterPriceMax);
+    setDraftSort(filterSort);
   };
 
   const applyFilter = () => {
@@ -277,6 +266,8 @@ export default function AdminProducts() {
     setFilterLicense(draftLicense);
     setFilterPriceMin(draftPriceMin);
     setFilterPriceMax(draftPriceMax);
+    setFilterSort(draftSort);
+    setPage(0);
     setFilterOpen(false);
     setToast("Filter applied");
   };
@@ -288,14 +279,15 @@ export default function AdminProducts() {
     setDraftLicense("ALL");
     setDraftPriceMin("");
     setDraftPriceMax("");
-
+    setDraftSort("newest");
     setFilterName("");
     setFilterCategory("ALL");
     setFilterStatus("ALL");
     setFilterLicense("ALL");
     setFilterPriceMin("");
     setFilterPriceMax("");
-
+    setFilterSort("newest");
+    setPage(0);
     setFilterOpen(false);
     setToast("Filter cleared");
   };
@@ -319,11 +311,10 @@ export default function AdminProducts() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
                   ? "border-brand/40 bg-brand/5 text-brand"
                   : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -448,6 +439,25 @@ export default function AdminProducts() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
+                </div>
+
+                {/* Row 4: Sort */}
+                <div className="mt-3">
+                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                    Sort By
+                  </label>
+                  <select
+                    value={draftSort}
+                    onChange={(e) => setDraftSort(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name_asc">Name (A→Z)</option>
+                    <option value="name_desc">Name (Z→A)</option>
+                    <option value="price_asc">Price (Low → High)</option>
+                    <option value="price_desc">Price (High → Low)</option>
+                  </select>
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
@@ -861,25 +871,21 @@ export default function AdminProducts() {
                   key={t.key}
                   type="button"
                   onClick={() => update_(t.key as any, !val)}
-                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${
-                    val ? t.borderColor : "border-gray-200 bg-gray-50"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition ${val ? t.borderColor : "border-gray-200 bg-gray-50"
+                    }`}
                 >
                   <span
-                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${
-                      val ? t.activeColor : "bg-gray-300"
-                    }`}
+                    className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition ${val ? t.activeColor : "bg-gray-300"
+                      }`}
                   >
                     <span
-                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${
-                        val ? "translate-x-[12px]" : "translate-x-0.5"
-                      }`}
+                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white shadow transition ${val ? "translate-x-[12px]" : "translate-x-0.5"
+                        }`}
                     />
                   </span>
                   <span
-                    className={`text-[10px] font-bold ${
-                      val ? t.textColor : "text-muted"
-                    }`}
+                    className={`text-[10px] font-bold ${val ? t.textColor : "text-muted"
+                      }`}
                   >
                     {t.label}
                   </span>

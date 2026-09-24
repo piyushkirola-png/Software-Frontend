@@ -219,13 +219,23 @@ export const adminService = {
   // Products
   async getAllProducts(
     page = 0,
-    size = 20,
-    status?: string,
+    size = 10,
+    name?: string,
     categoryId?: number,
+    status?: string,
+    licenseType?: string,
+    minPrice?: number,
+    maxPrice?: number,
+    sortBy?: string,
   ): Promise<PagedResponse<Product>> {
     const params: Record<string, unknown> = { page, size };
-    if (status) params.status = status;
+    if (name && name.trim()) params.name = name.trim();
     if (categoryId) params.categoryId = categoryId;
+    if (status && status !== "ALL") params.status = status;
+    if (licenseType && licenseType !== "ALL") params.licenseType = licenseType;
+    if (minPrice !== undefined) params.minPrice = minPrice;
+    if (maxPrice !== undefined) params.maxPrice = maxPrice;
+    if (sortBy) params.sortBy = sortBy;
     return apiGet<PagedResponse<Product>>("/admin/products", params);
   },
 

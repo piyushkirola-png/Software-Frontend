@@ -40,12 +40,40 @@ export function useAdminCategories() {
 export function useAdminProducts(
   page = 0,
   size = 10,
-  status?: string,
+  name?: string,
   categoryId?: number,
+  status?: string,
+  licenseType?: string,
+  minPrice?: number,
+  maxPrice?: number,
+  sortBy?: string,
 ) {
   return useQuery({
-    queryKey: ["admin", "products", page, size, status, categoryId],
-    queryFn: () => adminService.getAllProducts(page, size, status, categoryId),
+    queryKey: [
+      "admin",
+      "products",
+      page,
+      size,
+      name,
+      categoryId,
+      status,
+      licenseType,
+      minPrice,
+      maxPrice,
+      sortBy,
+    ],
+    queryFn: () =>
+      adminService.getAllProducts(
+        page,
+        size,
+        name,
+        categoryId,
+        status,
+        licenseType,
+        minPrice,
+        maxPrice,
+        sortBy,
+      ),
   });
 }
 

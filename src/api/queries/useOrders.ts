@@ -20,6 +20,39 @@ export function useMyOrdersPaginated(page = 0, size = 10) {
   });
 }
 
+export function useMyOrdersFiltered(
+  page = 0,
+  size = 10,
+  orderNumber?: string,
+  status?: string,
+  minTotal?: number,
+  maxTotal?: number,
+) {
+  const { isAuthenticated } = useAuthContext();
+  return useQuery({
+    queryKey: [
+      "orders",
+      "filtered",
+      page,
+      size,
+      orderNumber,
+      status,
+      minTotal,
+      maxTotal,
+    ],
+    queryFn: () =>
+      orderService.getMyOrdersFiltered(
+        page,
+        size,
+        orderNumber,
+        status,
+        minTotal,
+        maxTotal,
+      ),
+    enabled: isAuthenticated,
+  });
+}
+
 export function useOrder(orderId: number) {
   const { isAuthenticated } = useAuthContext();
   return useQuery({
