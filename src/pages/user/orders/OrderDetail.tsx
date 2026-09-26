@@ -1,18 +1,22 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import {
   Loader2,
   ArrowLeft,
-  Copy,
   CheckCircle,
   FileText,
-  Key,
   AlertCircle,
+  Star,
+  MessageSquare,
 } from "lucide-react";
-import { useState } from "react";
 import Reveal from "../../../components/animations/Reveal";
-import { useAuthContext } from "../../../lib/AuthContext";
+import Modal from "../../../components/ui/Modal";
+import Button from "../../../components/ui/Button";
 import { useOrder } from "../../../api/queries/useOrders";
+import { useCreateReview } from "../../../api/mutations/reviewMutations";
 import { resolveImageUrl } from "../../../lib/upload";
+import { getErrorMessage } from "../../../lib/api-client";
+import { notify } from "../../../components/ui/toast";
 
 const API_URL =
   import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
@@ -21,16 +25,11 @@ const API_URL =
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
   const orderId = Number(id);
-  const { showToast } = useAuthContext();
   const { data: order, isLoading, isError } = useOrder(orderId);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-
-  const copy = (text: string, id: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    showToast("License key copied");
-    setTimeout(() => setCopiedId(null), 1500);
-  };
+  const [reviewProduct, setReviewProduct] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
 
   if (isLoading) {
     return (
@@ -57,7 +56,6 @@ export default function OrderDetail() {
 
   return (
     <div className="space-y-5">
-      {/* Back link */}
       <Link
         to="/user/orders"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-brand transition"
@@ -65,7 +63,7 @@ export default function OrderDetail() {
         <ArrowLeft size={14} /> Back to Orders
       </Link>
 
-      {/* ============ HEADER CARD ============ */}
+      {/* HEADER CARD */}
       <Reveal>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
@@ -123,7 +121,7 @@ export default function OrderDetail() {
         </div>
       </Reveal>
 
-      {/* ============ ITEMS ============ */}
+      {/* ITEMS */}
       <Reveal>
         <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
           <h2 className="text-sm font-bold text-navy mb-4">Items</h2>
@@ -156,10 +154,24 @@ export default function OrderDetail() {
                     Qty: {item.quantity} × ₹{item.unitPrice.toFixed(2)}
                   </div>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="flex flex-col md:items-end gap-2 shrink-0">
                   <div className="font-bold text-navy">
                     ₹{item.lineTotal.toFixed(2)}
                   </div>
+                  {order.status === "SUCCESS" && (
+                    <button
+                      onClick={() =>
+                        setReviewProduct({
+                          id: item.productId,
+                          title: item.productTitle,
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand border border-brand/40 hover:bg-brand hover:text-white px-3 py-1.5 rounded-lg transition"
+                    >
+                      <MessageSquare size={12} />
+                      Write Review
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -167,51 +179,142 @@ export default function OrderDetail() {
         </div>
       </Reveal>
 
-      {/* ============ LICENSE KEYS ============ */}
-      {order.status === "SUCCESS" && order.items.some((i) => i.licenseKey) && (
-        <Reveal>
-          <div className="bg-navy rounded-2xl p-5 lg:p-6 text-white">
-            <h2 className="text-sm font-bold flex items-center gap-2 mb-4">
-              <Key size={16} /> Your License Keys
-            </h2>
-            <div className="space-y-3">
-              {order.items
-                .filter((i) => i.licenseKey)
-                .map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4"
-                  >
-                    <div className="text-xs text-gray-400 mb-2">
-                      {item.productTitle}
-                      {item.variantName ? ` • ${item.variantName}` : ""}
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <code className="font-mono text-sm text-white break-all">
-                        {item.licenseKey}
-                      </code>
-                      <button
-                        onClick={() => copy(item.licenseKey!, item.id)}
-                        className="shrink-0 inline-flex items-center gap-1 text-xs bg-brand hover:bg-brand-dark px-3 py-1.5 rounded-lg font-semibold transition"
-                      >
-                        {copiedId === item.id ? (
-                          <>
-                            <CheckCircle size={12} /> Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={12} /> Copy
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </Reveal>
-      )}
+      {/* Review Modal */}
+      <WriteReviewModal
+        product={reviewProduct}
+        onClose={() => setReviewProduct(null)}
+      />
     </div>
+  );
+}
+
+// WRITE REVIEW MODAL
+function WriteReviewModal({
+  product,
+  onClose,
+}: {
+  product: { id: number; title: string } | null;
+  onClose: () => void;
+}) {
+  const create = useCreateReview();
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState("");
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    if (!product) return;
+    setError("");
+    if (!rating) return setError("Please select a rating");
+    if (!title.trim()) return setError("Title is required");
+
+    try {
+      await create.mutateAsync({
+        productId: product.id,
+        rating,
+        title: title.trim(),
+        comment: comment.trim() || undefined,
+      });
+      notify.success("Review submitted successfully");
+      setRating(5);
+      setTitle("");
+      setComment("");
+      onClose();
+    } catch (e) {
+      const msg = getErrorMessage(e);
+      setError(msg);
+      notify.error(msg);
+    }
+  };
+
+  const handleClose = () => {
+    setRating(5);
+    setTitle("");
+    setComment("");
+    setError("");
+    onClose();
+  };
+
+  return (
+    <Modal open={!!product} onClose={handleClose}>
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-bold text-navy">Write a Review</h3>
+          <p className="text-xs text-muted mt-0.5 line-clamp-1">
+            {product?.title}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+            Rating
+          </label>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setRating(n)}
+                className="p-1 transition-transform hover:scale-110"
+              >
+                <Star
+                  size={28}
+                  fill={n <= rating ? "#10B981" : "transparent"}
+                  stroke={n <= rating ? "#10B981" : "#CBD5E1"}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+            Title <span className="text-red-500">*</span>
+          </label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Great product!"
+            maxLength={200}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+            Comment
+          </label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={4}
+            placeholder="Share your experience..."
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand resize-none"
+          />
+        </div>
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs">
+            <AlertCircle size={14} className="shrink-0 mt-0.5" />
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-2">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={create.isPending}
+            className="w-full rounded-xl px-5 py-2.5 border border-gray-200 text-navy text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <Button onClick={submit} loading={create.isPending} fullWidth>
+            Submit Review
+          </Button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   IndianRupee,
-  Package,
   Key,
   Download,
   Loader2,
@@ -11,27 +10,63 @@ import {
   ArrowRight,
   ShoppingBag,
   Receipt,
+  PieChart as PieIcon,
+  TrendingUp,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import Reveal from "../../../components/animations/Reveal";
 import { useMyOrders } from "../../../api/queries/useOrders";
-import { useMyDownloads } from "../../../api/queries/useDownloads";
 import { useAuthContext } from "../../../lib/AuthContext";
 import userService from "../../../api/services/userService";
 
-// ============ HELPERS ============
 function fmtCurrency(n: number) {
   return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 }
 
+function fmtShortCurrency(n: number) {
+  if (n >= 1000) {
+    const k = n / 1000;
+    return `₹${k % 1 === 0 ? k : k.toFixed(1)}k`;
+  }
+  return `₹${n}`;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  SUCCESS: "#10B981",
+  PENDING: "#F59E0B",
+  FAILED: "#EF4444",
+};
+
 export default function UserDashboard() {
   const { user } = useAuthContext();
   const { data: orders = [], isLoading, isError, refetch } = useMyOrders();
-  const { data: downloads = [] } = useMyDownloads();
 
   const successOrders = orders.filter((o) => o.status === "SUCCESS");
   const totalSpent = successOrders.reduce((sum, o) => sum + o.total, 0);
   const totalKeys = successOrders.reduce(
-    (sum, o) => sum + o.items.filter((i) => i.licenseKey).length,
+    (sum, o) =>
+      sum +
+      o.items.reduce((c, i) => {
+        if (i.licenseKeys && i.licenseKeys.length > 0)
+          return c + i.licenseKeys.length;
+        return c + (i.licenseKey ? 1 : 0);
+      }, 0),
+    0,
+  );
+  const totalDownloads = successOrders.reduce(
+    (sum, o) => sum + o.items.length,
     0,
   );
 
@@ -64,8 +99,15 @@ export default function UserDashboard() {
   const firstName = user?.name?.split(" ")[0] || "there";
   const avatarSrc = userService.absoluteAvatarUrl(user?.avatarUrl);
 
-  // ============ KPI CARDS ============
+  // KPI CARDS
   const cards = [
+    {
+      label: "Total Spent",
+      value: fmtCurrency(totalSpent),
+      hint: "Lifetime purchases",
+      icon: <IndianRupee className="h-4 w-4 text-white" />,
+      gradient: "from-orange-500 to-amber-500",
+    },
     {
       label: "Total Orders",
       value: orders.length.toLocaleString("en-IN"),
@@ -82,19 +124,60 @@ export default function UserDashboard() {
     },
     {
       label: "Downloads",
-      value: downloads.length.toLocaleString("en-IN"),
+      value: totalDownloads.toLocaleString("en-IN"),
       hint: "Files you own",
       icon: <Download className="h-4 w-4 text-white" />,
       gradient: "from-purple-500 to-indigo-500",
     },
-    {
-      label: "Total Spent",
-      value: fmtCurrency(totalSpent),
-      hint: "Lifetime purchases",
-      icon: <IndianRupee className="h-4 w-4 text-white" />,
-      gradient: "from-orange-500 to-amber-500",
-    },
   ];
+
+  // ORDER STATUS PIE
+  const statusData = [
+    {
+      name: "Success",
+      value: orders.filter((o) => o.status === "SUCCESS").length,
+      status: "SUCCESS",
+    },
+    {
+      name: "Pending",
+      value: orders.filter((o) => o.status === "PENDING").length,
+      status: "PENDING",
+    },
+    {
+      name: "Failed",
+      value: orders.filter((o) => o.status === "FAILED").length,
+      status: "FAILED",
+    },
+  ].filter((d) => d.value > 0);
+
+  // SPENDING TREND (last 6 months)
+  const monthMap = new Map<string, number>();
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+    monthMap.set(key, 0);
+  }
+  successOrders.forEach((o) => {
+    const d = new Date(o.createdAt);
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      year: "2-digit",
+    });
+    if (monthMap.has(key)) {
+      monthMap.set(key, (monthMap.get(key) || 0) + o.total);
+    }
+  });
+  const spendingTrend = Array.from(monthMap.entries()).map(
+    ([month, amount]) => ({
+      month,
+      amount: Number(amount.toFixed(0)),
+    }),
+  );
+  const maxSpend = Math.max(...spendingTrend.map((d) => d.amount), 100);
 
   return (
     <div className="space-y-5">
@@ -121,7 +204,6 @@ export default function UserDashboard() {
             </span>
           </div>
 
-          {/* ===== Avatar (Astro-style) ===== */}
           <Link
             to="/user/profile"
             className="h-10 w-10 rounded-full overflow-hidden border-2 border-brand/40 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center shrink-0 hover:border-brand transition-all"
@@ -167,10 +249,9 @@ export default function UserDashboard() {
         ))}
       </div>
 
-      {/* ============ ROW: Recent Orders + Account Summary ============ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Recent Orders */}
-        <Reveal className="lg:col-span-2">
+      {/* ============ ROW 2: Recent Orders (60%) + Account Summary (40%) ============ */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <Reveal className="lg:col-span-3">
           <div className="bg-white rounded-2xl border border-gray-100 p-5 h-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-navy flex items-center gap-2">
@@ -202,7 +283,7 @@ export default function UserDashboard() {
               </div>
             ) : (
               <div className="space-y-2">
-                {orders.slice(0, 6).map((o) => (
+                {orders.slice(0, 5).map((o) => (
                   <Link
                     key={o.id}
                     to={`/user/orders/${o.id}`}
@@ -235,32 +316,162 @@ export default function UserDashboard() {
           </div>
         </Reveal>
 
-        {/* Account Summary */}
-        <Reveal>
+        <Reveal className="lg:col-span-2">
           <div className="bg-white rounded-2xl border border-gray-100 p-5 h-full">
-            <h2 className="text-sm font-bold text-navy mb-4">
+            <h2 className="text-base font-bold text-navy mb-5">
               Account Summary
             </h2>
 
-            <div className="space-y-3 text-sm">
+            <div className="space-y-4 text-base">
               <SummaryRow label="Total Orders" value={orders.length} />
               <SummaryRow
                 label="Successful Orders"
                 value={successOrders.length}
               />
               <SummaryRow label="License Keys" value={totalKeys} />
-              <SummaryRow label="Downloads" value={downloads.length} />
+              <SummaryRow label="Downloads" value={totalDownloads} />
               <SummaryRow label="Total Spent" value={fmtCurrency(totalSpent)} />
             </div>
 
-            <div className="mt-5 pt-5 border-t border-gray-100">
+            <div className="mt-6 pt-6 border-t border-gray-100">
               <Link
                 to="/user/profile"
-                className="w-full inline-flex items-center justify-center gap-2 text-xs font-bold text-brand border-2 border-brand hover:bg-brand hover:text-white rounded-xl py-2.5 transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 text-sm font-bold text-brand border-2 border-brand hover:bg-brand hover:text-white rounded-xl py-3 transition-colors"
               >
                 Account Settings
               </Link>
             </div>
+          </div>
+        </Reveal>
+      </div>
+
+      {/* ============ ROW 3: Spending Trend (60%) + Pie (40%) ============ */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <Reveal className="lg:col-span-3">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 h-full">
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-navy flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-brand" />
+                Spending Trend
+              </h2>
+              <p className="text-[11px] text-muted mt-0.5">Last 6 months</p>
+            </div>
+
+            <div style={{ width: "100%", height: 280 }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={spendingTrend}
+                  margin={{ top: 20, right: 10, bottom: 10, left: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E3E9F2" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 11, fill: "#6B7A90" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, maxSpend]}
+                    tick={{ fontSize: 11, fill: "#6B7A90" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => fmtShortCurrency(v)}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 8,
+                      border: "1px solid #E3E9F2",
+                    }}
+                    formatter={(value: any) => [
+                      fmtCurrency(Number(value)),
+                      "Spent",
+                    ]}
+                  />
+                  <Bar
+                    dataKey="amount"
+                    fill="#1E6FD9"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={50}
+                    label={{
+                      position: "top",
+                      formatter: (v: any) => fmtShortCurrency(Number(v)),
+                      style: { fontSize: 11, fill: "#0B1F3A", fontWeight: 600 },
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal className="lg:col-span-2">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 h-full">
+            <div className="mb-4">
+              <h2 className="text-sm font-bold text-navy flex items-center gap-2">
+                <PieIcon className="h-4 w-4 text-brand" />
+                Order Status
+              </h2>
+              <p className="text-[11px] text-muted mt-0.5">
+                Distribution of your orders
+              </p>
+            </div>
+
+            {statusData.length === 0 ? (
+              <div className="h-[280px] flex items-center justify-center text-center">
+                <div>
+                  <ShoppingBag className="h-8 w-8 text-ink-300 mx-auto mb-2" />
+                  <p className="text-sm text-muted font-semibold">
+                    No orders yet
+                  </p>
+                  <Link
+                    to="/products"
+                    className="text-brand hover:underline font-semibold text-xs mt-2 inline-block"
+                  >
+                    Start shopping →
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div style={{ width: "100%", height: 280 }}>
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="45%"
+                      innerRadius={50}
+                      outerRadius={85}
+                      paddingAngle={3}
+                    >
+                      {statusData.map((entry) => (
+                        <Cell
+                          key={entry.status}
+                          fill={STATUS_COLORS[entry.status]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        fontSize: 12,
+                        borderRadius: 8,
+                        border: "1px solid #E3E9F2",
+                      }}
+                      formatter={(value: any, name: any) => [value, name]}
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      align="center"
+                      layout="horizontal"
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: 12, paddingTop: 10 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </Reveal>
       </div>
@@ -279,7 +490,7 @@ function SummaryRow({
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted">{label}</span>
-      <span className="font-bold text-navy">{value}</span>
+      <span className="font-bold text-navy text-base">{value}</span>
     </div>
   );
 }

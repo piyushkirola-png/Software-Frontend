@@ -4,7 +4,7 @@ import { apiPost } from "../../lib/api-client";
 interface ReviewRequest {
   productId: number;
   rating: number;
-  title?: string;
+  title: string;
   comment?: string;
 }
 

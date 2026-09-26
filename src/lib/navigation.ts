@@ -9,7 +9,6 @@ import {
   BarChart3,
   Settings,
   User as UserIcon,
-  Download,
   CreditCard,
   Lock,
   FolderTree,
@@ -25,7 +24,6 @@ export const USER_NAV: NavItem[] = [
   { label: "Dashboard", to: "/user/dashboard", icon: LayoutDashboard },
   { label: "Orders", to: "/user/orders", icon: Package },
   { label: "License Keys", to: "/user/keys", icon: Key },
-  { label: "Downloads", to: "/user/downloads", icon: Download },
   { label: "Profile", to: "/user/profile", icon: UserIcon },
   { label: "Update Password", to: "/user/password", icon: Lock },
 ];

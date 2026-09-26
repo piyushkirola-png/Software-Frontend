@@ -35,7 +35,6 @@ import {
 import { useAuthContext } from "../../../lib/AuthContext";
 import userService from "../../../api/services/userService";
 
-// ============ TYPES ============
 type StatusItem = {
   name: string;
   value: number;
@@ -47,7 +46,6 @@ type CategoryItem = {
   value: number;
 };
 
-// ============ CONSTANTS ============
 const STATUS_COLORS: Record<string, string> = {
   SUCCESS: "#10B981",
   PENDING: "#F59E0B",
@@ -63,9 +61,18 @@ const CATEGORY_COLORS = [
   "#14B8A6",
 ];
 
-// ============ HELPERS ============
 function fmtCurrency(n: number) {
   return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
+function fmtShortCurrency(n: number) {
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;
+  if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
+  if (n >= 1000) {
+    const k = n / 1000;
+    return `₹${k % 1 === 0 ? k : k.toFixed(1)}k`;
+  }
+  return `₹${n}`;
 }
 
 function fmtStatusLabel(s: string) {
@@ -73,7 +80,24 @@ function fmtStatusLabel(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
-// ============ COMPONENT ============
+function fmtDayLabel(dateStr: string) {
+  try {
+    const today = new Date();
+    const parts = dateStr.split("-").map(Number);
+    let d: Date;
+    if (parts.length === 3) {
+      d = new Date(parts[0], parts[1] - 1, parts[2]);
+    } else if (parts.length === 2) {
+      d = new Date(today.getFullYear(), parts[0] - 1, parts[1]);
+    } else {
+      return dateStr;
+    }
+    return d.toLocaleDateString("en-US", { weekday: "short" });
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function AdminDashboard() {
   const { data: stats, isLoading, isError, refetch } = useDashboardStats();
   const { user } = useAuthContext();
@@ -111,7 +135,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // ============ KPI CARDS ============
   const cards = [
     {
       label: "Total Revenue",
@@ -143,38 +166,44 @@ export default function AdminDashboard() {
     },
   ];
 
-  // ============ CHART 1 DATA: Revenue trend ============
   const fullTrend =
-    salesReport?.dailyBreakdown?.map((d) => ({
-      date: d.date.slice(5),
-      revenue: Number(d.revenue),
-      orders: d.orders,
-    })) || [];
+    salesReport?.dailyBreakdown?.map((d) => {
+      const raw = d.date;
+      return {
+        date: raw,
+        day: fmtDayLabel(raw),
+        revenue: Number(d.revenue),
+        orders: d.orders,
+      };
+    }) || [];
 
   const revenueTrend = fullTrend.length > 7 ? fullTrend.slice(-7) : fullTrend;
-
   const maxRev = Math.max(...revenueTrend.map((d) => d.revenue), 100);
 
-  // ============ CHART 2 DATA: Orders by status ============
   const statusData: StatusItem[] = [
     { name: "Success", value: stats.successOrders, status: "SUCCESS" },
     { name: "Pending", value: stats.pendingOrders, status: "PENDING" },
     { name: "Failed", value: stats.failedOrders, status: "FAILED" },
   ].filter((d: StatusItem) => d.value > 0);
 
-  // ============ CHART 3 DATA: Revenue by Category ============
-  const categoryData: CategoryItem[] = (
-    (stats as any).revenueByCategory ?? []
-  ).map((d: any) => ({
-    label: d.categoryName || d.label || "Other",
-    value: Number(d.value ?? d.revenue ?? 0),
-  }));
+  const categoryData: CategoryItem[] = (stats.revenueByCategory ?? []).map(
+    (d) => ({
+      label: d.categoryName || "Other",
+      value: Number(d.revenue ?? 0),
+    }),
+  );
 
   const maxCategory = Math.max(...categoryData.map((d) => d.value), 100);
 
+  const topProducts = (stats.topSellingProducts ?? []).map((p) => ({
+    label: p.productTitle,
+    value: Number(p.unitsSold ?? 0),
+    revenue: Number(p.revenue ?? 0),
+  }));
+
   return (
     <div className="space-y-5">
-      {/* ============ HEADER ============ */}
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-navy">
@@ -197,7 +226,6 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          {/* ===== Avatar (Astro-style) ===== */}
           <Link
             to="/admin/profile"
             className="h-10 w-10 rounded-full overflow-hidden border-2 border-brand/40 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center shrink-0 hover:border-brand transition-all"
@@ -221,7 +249,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ============ KPI CARDS ============ */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((c, i) => (
           <Reveal key={c.label} delay={i * 0.05}>
@@ -243,9 +271,9 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* ============ ROW 1: Revenue + Orders by status ============ */}
+      {/* ROW: Revenue Overview + Orders by Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Chart 1 — Revenue Overview */}
+        {/* Revenue Overview */}
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="mb-4">
@@ -273,18 +301,18 @@ export default function AdminDashboard() {
                 <ResponsiveContainer>
                   <LineChart
                     data={revenueTrend}
-                    margin={{ top: 5, right: 10, bottom: 24, left: 0 }}
+                    margin={{ top: 10, right: 10, bottom: 24, left: 10 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E3E9F2" />
                     <XAxis
-                      dataKey="date"
+                      dataKey="day"
                       tick={{ fontSize: 11, fill: "#6B7A90" }}
                       axisLine={false}
                       tickLine={false}
                       label={{
-                        value: "Date",
+                        value: "Day",
                         position: "insideBottom",
-                        offset: -12,
+                        offset: -6,
                         style: { fontSize: 11, fill: "#6B7A90" },
                       }}
                     />
@@ -293,7 +321,7 @@ export default function AdminDashboard() {
                       tick={{ fontSize: 11, fill: "#6B7A90" }}
                       axisLine={false}
                       tickLine={false}
-                      tickFormatter={(v) => `₹${v}`}
+                      tickFormatter={(v) => fmtShortCurrency(v)}
                       label={{
                         value: "Revenue (₹)",
                         angle: -90,
@@ -321,8 +349,8 @@ export default function AdminDashboard() {
                       dataKey="revenue"
                       stroke="#1E6FD9"
                       strokeWidth={2.5}
-                      dot={{ r: 3, fill: "#1E6FD9" }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 4, fill: "#1E6FD9" }}
+                      activeDot={{ r: 6 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -331,7 +359,7 @@ export default function AdminDashboard() {
           </div>
         </Reveal>
 
-        {/* Chart 2 — Orders by status */}
+        {/* Orders by Status */}
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="mb-4">
@@ -401,9 +429,9 @@ export default function AdminDashboard() {
         </Reveal>
       </div>
 
-      {/* ============ ROW 2: Category bar + Payment status bar ============ */}
+      {/* ROW: Revenue by Category + Top 5 Products */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Chart 3 — Revenue by Product Category */}
+        {/* Revenue by Product Category */}
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="mb-4">
@@ -417,8 +445,8 @@ export default function AdminDashboard() {
             </div>
 
             {categoryData.length === 0 ||
-            categoryData.every((d: CategoryItem) => d.value === 0) ? (
-              <div className="h-[280px] flex items-center justify-center text-center">
+              categoryData.every((d: CategoryItem) => d.value === 0) ? (
+              <div className="h-[320px] flex items-center justify-center text-center">
                 <div>
                   <BarChart3 className="h-8 w-8 text-ink-300 mx-auto mb-2" />
                   <p className="text-sm text-muted font-semibold">
@@ -430,11 +458,11 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ) : (
-              <div style={{ width: "100%", height: 280 }}>
+              <div style={{ width: "100%", height: 320 }}>
                 <ResponsiveContainer>
                   <BarChart
                     data={categoryData}
-                    margin={{ top: 5, right: 10, bottom: 24, left: 0 }}
+                    margin={{ top: 10, right: 10, bottom: 24, left: 10 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E3E9F2" />
                     <XAxis
@@ -443,9 +471,9 @@ export default function AdminDashboard() {
                       axisLine={false}
                       tickLine={false}
                       label={{
-                        value: "Product Category",
+                        value: "Category",
                         position: "insideBottom",
-                        offset: -12,
+                        offset: -6,
                         style: { fontSize: 11, fill: "#6B7A90" },
                       }}
                     />
@@ -454,7 +482,7 @@ export default function AdminDashboard() {
                       tick={{ fontSize: 11, fill: "#6B7A90" }}
                       axisLine={false}
                       tickLine={false}
-                      tickFormatter={(v) => `₹${v}`}
+                      tickFormatter={(v) => fmtShortCurrency(v)}
                       label={{
                         value: "Revenue (₹)",
                         angle: -90,
@@ -492,59 +520,81 @@ export default function AdminDashboard() {
           </div>
         </Reveal>
 
-        {/* Chart 4 — Payment Status Distribution */}
+        {/* Top 5 Selling Products */}
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="mb-4">
               <h2 className="text-sm font-bold text-navy flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-brand" />
-                Payment Status Distribution
+                Top 5 Selling Products
               </h2>
               <p className="text-[11px] text-muted mt-0.5">
-                All-time payment outcomes
+                Best sellers by units sold
               </p>
             </div>
 
-            {statusData.length === 0 ? (
-              <div className="h-[280px] flex items-center justify-center text-center">
+            {topProducts.length === 0 ||
+              topProducts.every((p) => p.value === 0) ? (
+              <div className="h-[320px] flex items-center justify-center text-center">
                 <div>
                   <BarChart3 className="h-8 w-8 text-ink-300 mx-auto mb-2" />
                   <p className="text-sm text-muted font-semibold">
-                    No payments yet
+                    No products sold yet
                   </p>
                   <p className="text-[11px] text-muted mt-1">
-                    Payment outcomes will appear here
+                    Your best sellers will appear here
                   </p>
                 </div>
               </div>
             ) : (
-              <div style={{ width: "100%", height: 280 }}>
+              <div style={{ width: "100%", height: 320 }}>
                 <ResponsiveContainer>
                   <BarChart
-                    data={statusData}
-                    margin={{ top: 5, right: 10, bottom: 24, left: 0 }}
+                    data={topProducts}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, bottom: 24, left: 20 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E3E9F2" />
                     <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 11, fill: "#6B7A90" }}
-                      axisLine={false}
-                      tickLine={false}
-                      label={{
-                        value: "Payment Status",
-                        position: "insideBottom",
-                        offset: -12,
-                        style: { fontSize: 11, fill: "#6B7A90" },
-                      }}
-                    />
-                    <YAxis
-                      domain={[0, "auto"]}
+                      type="number"
                       allowDecimals={false}
                       tick={{ fontSize: 11, fill: "#6B7A90" }}
                       axisLine={false}
                       tickLine={false}
                       label={{
-                        value: "Count",
+                        value: "Units Sold",
+                        position: "insideBottom",
+                        offset: -6,
+                        style: { fontSize: 11, fill: "#6B7A90" },
+                      }}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="label"
+                      tick={({ x, y, payload }: any) => {
+                        const label: string = payload.value || "";
+                        const truncated =
+                          label.length > 20
+                            ? label.slice(0, 20) + "…"
+                            : label;
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            dy={4}
+                            textAnchor="end"
+                            fill="#6B7A90"
+                            fontSize={11}
+                          >
+                            {truncated}
+                          </text>
+                        );
+                      }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={150}
+                      label={{
+                        value: "Product",
                         angle: -90,
                         position: "insideLeft",
                         style: {
@@ -560,13 +610,20 @@ export default function AdminDashboard() {
                         borderRadius: 8,
                         border: "1px solid #E3E9F2",
                       }}
-                      formatter={(value: any) => [value, "Payments"]}
+                      formatter={(value: any, _n: any, p: any) => [
+                        `${value} units • ${fmtCurrency(p?.payload?.revenue ?? 0)}`,
+                        "Sold",
+                      ]}
                     />
-                    <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={70}>
-                      {statusData.map((entry: StatusItem) => (
+                    <Bar
+                      dataKey="value"
+                      radius={[0, 6, 6, 0]}
+                      maxBarSize={28}
+                    >
+                      {topProducts.map((_, idx) => (
                         <Cell
-                          key={entry.status}
-                          fill={STATUS_COLORS[entry.status]}
+                          key={idx}
+                          fill={CATEGORY_COLORS[idx % CATEGORY_COLORS.length]}
                         />
                       ))}
                     </Bar>

@@ -14,6 +14,18 @@ import { Review } from "../../types/review";
 import { Payment } from "../../types/payment";
 
 // ================== Dashboard ==================
+export interface CategoryRevenue {
+  categoryName: string;
+  revenue: number;
+}
+
+export interface TopProduct {
+  productId: number;
+  productTitle: string;
+  unitsSold: number;
+  revenue: number;
+}
+
 export interface DashboardStats {
   totalRevenue: number;
   todayRevenue: number;
@@ -34,6 +46,8 @@ export interface DashboardStats {
   reservedKeys: number;
   soldKeys: number;
   revokedKeys: number;
+  revenueByCategory: CategoryRevenue[];
+  topSellingProducts: TopProduct[];
 }
 
 export interface RecentOrder {
@@ -259,14 +273,19 @@ export const adminService = {
     return apiPost<Product>(`/admin/products/${id}/toggle-active`);
   },
 
-  // Coupons
   async getAllCoupons(
     page = 0,
     size = 20,
     status?: string,
+    type?: string,
+    valueMin?: number,
+    valueMax?: number,
   ): Promise<PagedResponse<Coupon>> {
     const params: Record<string, unknown> = { page, size };
-    if (status) params.status = status;
+    if (status && status !== "ALL") params.status = status;
+    if (type && type !== "ALL") params.type = type;
+    if (valueMin !== undefined) params.valueMin = valueMin;
+    if (valueMax !== undefined) params.valueMax = valueMax;
     return apiGet<PagedResponse<Coupon>>("/admin/coupons", params);
   },
 
@@ -360,7 +379,6 @@ export const adminService = {
     return apiDelete<void>(`/admin/reviews/${id}`);
   },
 
-  // Keys
   async getKeys(
     page = 0,
     size = 50,
@@ -368,12 +386,15 @@ export const adminService = {
     productId?: number,
     variantId?: number,
     search?: string,
+    productSearch?: string,
   ): Promise<PagedResponse<AdminKey>> {
     const params: Record<string, unknown> = { page, size };
     if (status) params.status = status;
     if (productId) params.productId = productId;
     if (variantId) params.variantId = variantId;
     if (search && search.trim()) params.search = search.trim();
+    if (productSearch && productSearch.trim())
+      params.productSearch = productSearch.trim();
     return apiGet<PagedResponse<AdminKey>>("/admin/keys", params);
   },
 
@@ -391,19 +412,72 @@ export const adminService = {
     return apiPost<AdminKey>("/admin/keys", data);
   },
 
+  async updateKey(
+    id: number,
+    data: {
+      licenseKey?: string;
+      status?: string;
+      productId?: number;
+      variantId?: number;
+    },
+  ): Promise<AdminKey> {
+    return apiPut<AdminKey>(`/admin/keys/${id}`, data);
+  },
+
   // Payments
   async getAllPayments(
     page = 0,
     size = 20,
     status?: string,
     gateway?: string,
-    search?: string,
+    orderNumber?: string,
+    paymentId?: string,
+    minAmount?: number,
+    maxAmount?: number,
   ): Promise<PagedResponse<Payment>> {
     const params: Record<string, unknown> = { page, size };
-    if (status) params.status = status;
-    if (gateway) params.gateway = gateway;
-    if (search && search.trim()) params.search = search.trim();
+    if (status && status !== "ALL") params.status = status;
+    if (gateway && gateway !== "ALL") params.gateway = gateway;
+    if (orderNumber && orderNumber.trim())
+      params.orderNumber = orderNumber.trim();
+    if (paymentId && paymentId.trim()) params.paymentId = paymentId.trim();
+    if (minAmount !== undefined) params.minAmount = minAmount;
+    if (maxAmount !== undefined) params.maxAmount = maxAmount;
     return apiGet<PagedResponse<Payment>>("/admin/payments", params);
+  },
+
+  async exportPaymentsCsv(
+    status?: string,
+    gateway?: string,
+    orderNumber?: string,
+    paymentId?: string,
+    minAmount?: number,
+    maxAmount?: number,
+  ): Promise<void> {
+    const params = new URLSearchParams();
+    if (status && status !== "ALL") params.append("status", status);
+    if (gateway && gateway !== "ALL") params.append("gateway", gateway);
+    if (orderNumber && orderNumber.trim())
+      params.append("orderNumber", orderNumber.trim());
+    if (paymentId && paymentId.trim())
+      params.append("paymentId", paymentId.trim());
+    if (minAmount !== undefined) params.append("minAmount", String(minAmount));
+    if (maxAmount !== undefined) params.append("maxAmount", String(maxAmount));
+
+    const res = await apiClient.get(`/admin/payments/export-csv?${params}`, {
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(
+      new Blob([res.data], { type: "text/csv" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "payments.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 
   async getPayment(id: number): Promise<Payment> {

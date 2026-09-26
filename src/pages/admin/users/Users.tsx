@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Trash2,
   Power,
+  RefreshCw,
   PowerOff,
   CheckCircle,
   MoreVertical,
@@ -26,7 +27,10 @@ const PAGE_SIZE = 10;
 
 export default function AdminUsers() {
   const [page, setPage] = useState(0);
-  const { data, isLoading, isError, refetch } = useAdminUsers(page, PAGE_SIZE);
+  const { data, isLoading, isError, refetch, isRefetching } = useAdminUsers(
+    page,
+    PAGE_SIZE,
+  );
   const toggleMutation = useToggleUserActive();
   const deleteMutation = useDeleteUser();
 
@@ -60,7 +64,15 @@ export default function AdminUsers() {
     });
   };
 
-  const users = data?.content ?? [];
+  const rawUsers = data?.content ?? [];
+  const users = useMemo(() => {
+    return [...rawUsers].sort((a, b) => {
+      if (a.role === "ADMIN" && b.role !== "ADMIN") return -1;
+      if (a.role !== "ADMIN" && b.role === "ADMIN") return 1;
+      return 0;
+    });
+  }, [rawUsers]);
+
   const totalPages = data?.totalPages ?? 0;
   const totalElements = data?.totalElements ?? 0;
   const rangeStart = users.length === 0 ? 0 : page * PAGE_SIZE + 1;
@@ -98,15 +110,33 @@ export default function AdminUsers() {
     });
   };
 
+  const handleRefresh = async () => {
+    await refetch();
+    setToast("Refreshed successfully");
+  };
+
   const saving = toggleMutation.isPending || deleteMutation.isPending;
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-navy">Users</h1>
-        <p className="text-muted mt-1 text-sm">
-          Manage all registered users on the platform
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-navy">Users</h1>
+          <p className="text-muted mt-1 text-sm">
+            Manage all registered users on the platform
+          </p>
+        </div>
+
+        <button
+          onClick={handleRefresh}
+          disabled={isRefetching}
+          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 disabled:opacity-60 transition"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </button>
       </div>
 
       {isLoading && (
@@ -203,34 +233,34 @@ export default function AdminUsers() {
 
                 <div className="col-span-1">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                      u.isActive
-                        ? "bg-success/10 text-success"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${u.isActive
+                      ? "bg-success/10 text-success"
+                      : "bg-gray-200 text-gray-600"
+                      }`}
                   >
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        u.isActive ? "bg-success" : "bg-gray-400"
-                      }`}
+                      className={`h-1.5 w-1.5 rounded-full ${u.isActive ? "bg-success" : "bg-gray-400"
+                        }`}
                     />
                     {u.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
 
                 <div className="col-span-1 flex justify-start md:justify-end relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpenFor(menuOpenFor === u.id ? null : u.id);
-                    }}
-                    className="p-2 rounded-lg text-muted hover:text-navy hover:bg-gray-100 transition"
-                    aria-label="Actions"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
+                  {u.role !== "ADMIN" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpenFor(menuOpenFor === u.id ? null : u.id);
+                      }}
+                      className="p-2 rounded-lg text-muted hover:text-navy hover:bg-gray-100 transition"
+                      aria-label="Actions"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  )}
 
-                  {menuOpenFor === u.id && (
+                  {menuOpenFor === u.id && u.role !== "ADMIN" && (
                     <div
                       className="absolute right-0 top-10 z-50 w-48 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden text-left"
                       onClick={(e) => e.stopPropagation()}
@@ -272,11 +302,10 @@ export default function AdminUsers() {
                             setConfirmAction({ type: "delete", user: u });
                           }
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${
-                          u.isActive
-                            ? "text-gray-300 cursor-not-allowed"
-                            : "text-danger hover:bg-red-50"
-                        }`}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold transition ${u.isActive
+                          ? "text-gray-300 cursor-not-allowed"
+                          : "text-danger hover:bg-red-50"
+                          }`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete

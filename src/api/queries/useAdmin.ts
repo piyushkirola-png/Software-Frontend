@@ -77,10 +77,27 @@ export function useAdminProducts(
   });
 }
 
-export function useAdminCoupons(page = 0, size = 20, status?: string) {
+export function useAdminCoupons(
+  page = 0,
+  size = 20,
+  status?: string,
+  type?: string,
+  valueMin?: number,
+  valueMax?: number,
+) {
   return useQuery({
-    queryKey: ["admin", "coupons", page, size, status],
-    queryFn: () => adminService.getAllCoupons(page, size, status),
+    queryKey: [
+      "admin",
+      "coupons",
+      page,
+      size,
+      status,
+      type,
+      valueMin,
+      valueMax,
+    ],
+    queryFn: () =>
+      adminService.getAllCoupons(page, size, status, type, valueMin, valueMax),
   });
 }
 
@@ -117,6 +134,7 @@ export function useAdminKeys(
   productId?: number,
   variantId?: number,
   search?: string,
+  productSearch?: string,
 ) {
   return useQuery({
     queryKey: [
@@ -128,9 +146,18 @@ export function useAdminKeys(
       productId,
       variantId,
       search,
+      productSearch,
     ],
     queryFn: () =>
-      adminService.getKeys(page, size, status, productId, variantId, search),
+      adminService.getKeys(
+        page,
+        size,
+        status,
+        productId,
+        variantId,
+        search,
+        productSearch,
+      ),
   });
 }
 
@@ -146,11 +173,34 @@ export function useAdminPayments(
   size = 20,
   status?: string,
   gateway?: string,
-  search?: string,
+  orderNumber?: string,
+  paymentId?: string,
+  minAmount?: number,
+  maxAmount?: number,
 ) {
   return useQuery({
-    queryKey: ["admin", "payments", page, size, status, gateway, search],
+    queryKey: [
+      "admin",
+      "payments",
+      page,
+      size,
+      status,
+      gateway,
+      orderNumber,
+      paymentId,
+      minAmount,
+      maxAmount,
+    ],
     queryFn: () =>
-      adminService.getAllPayments(page, size, status, gateway, search),
+      adminService.getAllPayments(
+        page,
+        size,
+        status,
+        gateway,
+        orderNumber,
+        paymentId,
+        minAmount,
+        maxAmount,
+      ),
   });
 }

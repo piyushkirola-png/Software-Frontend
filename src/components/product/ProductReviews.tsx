@@ -1,104 +1,130 @@
-import { Star, CheckCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Star, Loader2, MessageSquare, CheckCircle } from "lucide-react";
+import Reveal from "../animations/Reveal";
 import { useProductReviews } from "../../api/queries/useReviews";
-import { useAuthContext } from "../../lib/AuthContext";
 
 interface Props {
   productId: number;
 }
 
 export default function ProductReviews({ productId }: Props) {
-  const { data, isLoading } = useProductReviews(productId, 0, 20);
-  const { isAuthenticated } = useAuthContext();
+  const [page, setPage] = useState(0);
+  const { data, isLoading } = useProductReviews(productId, page, 10);
+
   const reviews = data?.content || [];
-
-  const renderStars = (rating: number) =>
-    [...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        size={14}
-        fill={i < rating ? "#10B981" : "transparent"}
-        stroke={i < rating ? "#10B981" : "#CBD5E1"}
-      />
-    ));
-
-  const formatDate = (iso: string) => {
-    try {
-      return new Date(iso).toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return "";
-    }
-  };
+  const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-extrabold text-navy">Customer Reviews</h2>
-        {isAuthenticated && (
-          <span className="text-xs text-muted">
-            Only verified buyers can review
-          </span>
-        )}
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <h3 className="text-base font-bold text-navy">Customer Reviews</h3>
+        <p className="text-xs text-muted mt-0.5">
+          {totalElements} review{totalElements !== 1 ? "s" : ""}
+        </p>
       </div>
 
+      {/* Loading */}
       {isLoading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 text-brand animate-spin" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <Loader2 className="h-6 w-6 animate-spin text-brand mx-auto" />
         </div>
       )}
 
+      {/* Empty */}
       {!isLoading && reviews.length === 0 && (
-        <p className="text-muted text-sm py-6 text-center">
-          No reviews yet. Be the first to review after your purchase.
-        </p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <MessageSquare className="h-8 w-8 text-ink-300 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-navy">No reviews yet</p>
+          <p className="text-xs text-muted mt-1">
+            Be the first to review after your purchase.
+          </p>
+        </div>
       )}
 
+      {/* List */}
       {!isLoading && reviews.length > 0 && (
-        <div className="space-y-5">
-          {reviews.map((r) => (
-            <div
-              key={r.id}
-              className="pb-5 border-b border-gray-100 last:border-0 last:pb-0"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-sm">
+        <Reveal>
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div
+                key={r.id}
+                className="bg-white border border-gray-100 rounded-2xl p-5"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-sm shrink-0">
                     {r.userInitials}
                   </div>
-                  <div>
-                    <div className="font-bold text-navy text-sm">
-                      {r.userName}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <div className="flex gap-0.5">
-                        {renderStars(r.rating)}
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-navy text-sm">
+                        {r.userName}
+                      </span>
                       {r.isVerifiedPurchase && (
-                        <span className="flex items-center gap-1 text-success font-semibold">
-                          <CheckCircle size={11} /> Verified Buyer
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-success bg-success/10 px-2 py-0.5 rounded-full">
+                          <CheckCircle size={10} /> Verified Buyer
                         </span>
                       )}
                     </div>
+                    <div className="flex gap-0.5 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={12}
+                          fill={i < r.rating ? "#10B981" : "transparent"}
+                          stroke={i < r.rating ? "#10B981" : "#CBD5E1"}
+                        />
+                      ))}
+                    </div>
                   </div>
+                  <span className="text-[11px] text-muted shrink-0">
+                    {new Date(r.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
-                <span className="text-xs text-muted shrink-0">
-                  {formatDate(r.createdAt)}
-                </span>
+
+                {r.title && (
+                  <h4 className="font-bold text-navy text-sm mb-1">
+                    {r.title}
+                  </h4>
+                )}
+                {r.comment && (
+                  <p className="text-sm text-muted leading-relaxed">
+                    {r.comment}
+                  </p>
+                )}
               </div>
-              {r.title && (
-                <h4 className="font-bold text-navy text-sm mt-3">{r.title}</h4>
-              )}
-              {r.comment && (
-                <p className="text-sm text-muted mt-1 leading-relaxed">
-                  {r.comment}
-                </p>
-              )}
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-end gap-3 mt-4 text-sm">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="text-navy font-semibold disabled:opacity-30"
+              >
+                ← Prev
+              </button>
+              <span className="text-xs font-bold text-navy">
+                Page {page + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(totalPages - 1, p + 1))
+                }
+                disabled={page >= totalPages - 1}
+                className="text-navy font-semibold disabled:opacity-30"
+              >
+                Next →
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </Reveal>
       )}
     </div>
   );

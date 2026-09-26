@@ -35,7 +35,6 @@ export function useDeleteCategory() {
   });
 }
 
-// Products
 export function useCreateProduct() {
   const qc = useQueryClient();
   return useMutation({
@@ -69,7 +68,6 @@ export function useToggleProductActive() {
   });
 }
 
-// Coupons
 export function useCreateCoupon() {
   const qc = useQueryClient();
   return useMutation({
@@ -103,7 +101,6 @@ export function useToggleCouponActive() {
   });
 }
 
-// Orders
 export function useUpdateOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -122,7 +119,6 @@ export function useResendOrderEmail() {
   });
 }
 
-// Users
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -148,7 +144,6 @@ export function useDeleteUser() {
   });
 }
 
-// Reviews
 export function useApproveReview() {
   const qc = useQueryClient();
   return useMutation({
@@ -173,11 +168,32 @@ export function useDeleteReview() {
   });
 }
 
-// Keys
 export function useAddKey() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: any) => adminService.addKey(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "keys"] });
+      qc.invalidateQueries({ queryKey: ["admin", "key-stock"] });
+    },
+  });
+}
+
+export function useUpdateKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: {
+        licenseKey?: string;
+        status?: string;
+        productId?: number;
+        variantId?: number;
+      };
+    }) => adminService.updateKey(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "keys"] });
       qc.invalidateQueries({ queryKey: ["admin", "key-stock"] });

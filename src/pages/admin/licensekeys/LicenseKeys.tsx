@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   Trash2,
-  Ban,
+  Pencil,
   Key,
   Loader2,
   Plus,
@@ -25,6 +25,7 @@ import Reveal from "../../../components/animations/Reveal";
 import { useAdminKeys, useAdminProducts } from "../../../api/queries/useAdmin";
 import {
   useAddKey,
+  useUpdateKey,
   useBulkUploadKeys,
   useRevokeKey,
   useDeleteKey,
@@ -34,14 +35,14 @@ import { getErrorMessage } from "../../../lib/api-client";
 export default function AdminKeys() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
-  const [productId, setProductId] = useState<number | undefined>();
+  const [productSearch, setProductSearch] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
   // Filter popover
   const [filterOpen, setFilterOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState("");
-  const [draftProductId, setDraftProductId] = useState<number | undefined>();
+  const [draftProductSearch, setDraftProductSearch] = useState("");
   const [draftSearch, setDraftSearch] = useState("");
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -52,13 +53,15 @@ export default function AdminKeys() {
     page,
     10,
     status || undefined,
-    productId,
+    undefined,
     undefined,
     search || undefined,
+    productSearch || undefined,
   );
   const { data: productsData } = useAdminProducts(0, 100);
 
   const addKey = useAddKey();
+  const updateKey = useUpdateKey();
   const bulkUpload = useBulkUploadKeys();
   const revoke = useRevokeKey();
   const del = useDeleteKey();
@@ -75,6 +78,14 @@ export default function AdminKeys() {
   const [singleKey, setSingleKey] = useState("");
   const [singleBatch, setSingleBatch] = useState("");
   const [addError, setAddError] = useState("");
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editKey, setEditKey] = useState("");
+  const [editStatus, setEditStatus] = useState<string>("AVAILABLE");
+  const [editProductId, setEditProductId] = useState<number>(0);
+  const [editVariantId, setEditVariantId] = useState<number | undefined>();
+  const [editError, setEditError] = useState("");
 
   const [confirmState, setConfirmState] = useState<{
     open: boolean;
@@ -127,7 +138,7 @@ export default function AdminKeys() {
         left: rect.left,
         width: rect.width,
         maxHeight,
-        zIndex: 9999,
+        zIndex: 99999,
       });
     };
 
@@ -140,23 +151,14 @@ export default function AdminKeys() {
       window.addEventListener("resize", onScrollOrResize);
 
       const onClickOutside = (e: MouseEvent) => {
-        if (
-          filterRef.current &&
-          !filterRef.current.contains(e.target as Node)
-        ) {
-          setFilterOpen(false);
-          setDraftStatus(status);
-          setDraftProductId(productId);
-          setDraftSearch(search);
-        }
+        const target = e.target as Element;
+        if (target.closest('[data-portal="product-select"]')) return;
+        if (buttonRef.current && buttonRef.current.contains(target)) return;
+        setOpen(false);
       };
+
       const onEsc = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-          setFilterOpen(false);
-          setDraftStatus(status);
-          setDraftProductId(productId);
-          setDraftSearch(search);
-        }
+        if (e.key === "Escape") setOpen(false);
       };
 
       document.addEventListener("mousedown", onClickOutside);
@@ -167,7 +169,6 @@ export default function AdminKeys() {
         document.removeEventListener("mousedown", onClickOutside);
         document.removeEventListener("keydown", onEsc);
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, visibleCount]);
 
     return (
@@ -185,9 +186,8 @@ export default function AdminKeys() {
           </span>
           <ChevronDown
             size={16}
-            className={`shrink-0 text-muted transition-transform ${
-              open ? "rotate-180" : ""
-            }`}
+            className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""
+              }`}
           />
         </button>
 
@@ -195,6 +195,7 @@ export default function AdminKeys() {
           createPortal(
             <div
               ref={panelRef}
+              data-portal="product-select"
               style={panelStyle}
               className="bg-white border border-gray-200 rounded-xl shadow-2xl overflow-y-auto"
             >
@@ -228,11 +229,10 @@ export default function AdminKeys() {
                     onChange(p.id);
                     setOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition ${
-                    value === p.id
-                      ? "bg-brand/5 text-brand font-semibold"
-                      : "text-navy hover:bg-soft"
-                  }`}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition ${value === p.id
+                    ? "bg-brand/5 text-brand font-semibold"
+                    : "text-navy hover:bg-soft"
+                    }`}
                 >
                   <span className="truncate">{p.title}</span>
                   {value === p.id && (
@@ -256,21 +256,24 @@ export default function AdminKeys() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Close filter on outside click / ESC
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+      const target = e.target as Element;
+      if (target.closest('[data-portal="product-select"]')) return;
+      if (filterRef.current && !filterRef.current.contains(target)) {
         setFilterOpen(false);
         setDraftStatus(status);
-        setDraftProductId(productId);
+        setDraftProductSearch(productSearch);
+        setDraftSearch(search);
       }
     };
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setFilterOpen(false);
         setDraftStatus(status);
-        setDraftProductId(productId);
+        setDraftProductSearch(productSearch);
+        setDraftSearch(search);
       }
     };
     document.addEventListener("mousedown", onClickOutside);
@@ -279,7 +282,7 @@ export default function AdminKeys() {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEsc);
     };
-  }, [filterOpen, status, productId, search]);
+  }, [filterOpen, status, productSearch, search]);
 
   const products = productsData?.content || [];
   const keys = data?.content || [];
@@ -287,18 +290,20 @@ export default function AdminKeys() {
   const totalElements = data?.totalElements || 0;
   const hasAnyVariant = keys.some((k: any) => !!k.variantName);
   const hasFilters =
-    status !== "" || productId !== undefined || search.trim() !== "";
+    status !== "" ||
+    productSearch.trim() !== "" ||
+    search.trim() !== "";
 
   const openFilter = () => {
     setDraftStatus(status);
-    setDraftProductId(productId);
+    setDraftProductSearch(productSearch);
     setDraftSearch(search);
     setFilterOpen(true);
   };
 
   const applyFilter = () => {
     setStatus(draftStatus);
-    setProductId(draftProductId);
+    setProductSearch(draftProductSearch);
     setSearch(draftSearch);
     setPage(0);
     setFilterOpen(false);
@@ -307,10 +312,10 @@ export default function AdminKeys() {
 
   const clearFilter = () => {
     setDraftStatus("");
-    setDraftProductId(undefined);
+    setDraftProductSearch("");
     setDraftSearch("");
     setStatus("");
-    setProductId(undefined);
+    setProductSearch("");
     setSearch("");
     setPage(0);
     setFilterOpen(false);
@@ -339,7 +344,6 @@ export default function AdminKeys() {
     } catch (e) {
       const msg = getErrorMessage(e);
       setUploadError(msg);
-      setToast(msg);
     }
   };
 
@@ -364,7 +368,41 @@ export default function AdminKeys() {
     } catch (e) {
       const msg = getErrorMessage(e);
       setAddError(msg);
-      setToast(msg);
+    }
+  };
+
+  // ============ EDIT HANDLERS ============
+  const openEdit = (k: any) => {
+    setEditId(k.id);
+    setEditKey(k.licenseKey);
+    setEditStatus(k.status);
+    setEditProductId(k.productId);
+    setEditVariantId(k.variantId ?? undefined);
+    setEditError("");
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    setEditError("");
+    if (!editId) return;
+    if (!editKey.trim()) return setEditError("License key is required");
+    if (!editProductId) return setEditError("Product is required");
+
+    try {
+      await updateKey.mutateAsync({
+        id: editId,
+        data: {
+          licenseKey: editKey.trim(),
+          status: editStatus,
+          productId: editProductId,
+          variantId: editVariantId,
+        },
+      });
+      setEditOpen(false);
+      setToast("Key updated");
+    } catch (e) {
+      const msg = getErrorMessage(e);
+      setEditError(msg);
     }
   };
 
@@ -413,11 +451,10 @@ export default function AdminKeys() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -468,25 +505,24 @@ export default function AdminKeys() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="">All</option>
-                      <option value="AVAILABLE">Available</option>
-                      <option value="RESERVED">Reserved</option>
-                      <option value="SOLD">Sold</option>
-                      <option value="REVOKED">Revoked</option>
+                      <option value="AVAILABLE">AVAILABLE</option>
+                      <option value="RESERVED">RESERVED</option>
+                      <option value="SOLD">SOLD</option>
+                      <option value="REVOKED">REVOKED</option>
                     </select>
                   </div>
 
-                  {/* Product */}
+                  {/* Product (search) */}
                   <div>
                     <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Product
                     </label>
-                    <ProductSelect
-                      products={products}
-                      value={draftProductId}
-                      onChange={setDraftProductId}
-                      placeholder="All"
-                      allowAll
-                      visibleCount={10}
+                    <input
+                      type="text"
+                      value={draftProductSearch}
+                      onChange={(e) => setDraftProductSearch(e.target.value)}
+                      placeholder="Search product..."
+                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
                 </div>
@@ -609,15 +645,16 @@ export default function AdminKeys() {
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1">
-                          {k.status !== "SOLD" && k.status !== "REVOKED" && (
-                            <button
-                              onClick={() => confirmRevoke(k)}
-                              className="w-8 h-8 rounded-lg hover:bg-yellow-50 text-yellow-600 flex items-center justify-center"
-                              title="Revoke"
-                            >
-                              <Ban size={14} />
-                            </button>
-                          )}
+                          {/* Edit button — replaces Revoke */}
+                          <button
+                            onClick={() => openEdit(k)}
+                            className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
+                            title="Edit"
+                          >
+                            <Pencil size={14} />
+                          </button>
+
+                          {/* Delete */}
                           {k.status !== "SOLD" && (
                             <button
                               onClick={() => confirmDelete(k)}
@@ -643,10 +680,10 @@ export default function AdminKeys() {
         <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
           <div className="text-xs text-muted">
             Showing{" "}
-            <span className="font-semibold text-navy">{page * 50 + 1}</span>
+            <span className="font-semibold text-navy">{page * 10 + 1}</span>
             {" – "}
             <span className="font-semibold text-navy">
-              {page * 50 + keys.length}
+              {page * 10 + keys.length}
             </span>{" "}
             of <span className="font-semibold text-navy">{totalElements}</span>
           </div>
@@ -768,7 +805,7 @@ export default function AdminKeys() {
               </div>
 
               <Input
-                label="Batch Name (optional)"
+                label="Batch Name"
                 value={uploadBatch}
                 onChange={(e) => setUploadBatch(e.target.value)}
                 placeholder="Feb2026"
@@ -844,12 +881,12 @@ export default function AdminKeys() {
           <Input
             label="License Key"
             value={singleKey}
-            onChange={(e) => setSingleKey(e.target.value)}
-            placeholder="XXXXX-XXXXX-XXXXX"
+            onChange={(e) => setSingleKey(e.target.value.toUpperCase())}
+            placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
           />
 
           <Input
-            label="Batch Name (optional)"
+            label="Batch Name"
             value={singleBatch}
             onChange={(e) => setSingleBatch(e.target.value)}
           />
@@ -880,7 +917,82 @@ export default function AdminKeys() {
         </div>
       </Modal>
 
-      {/* ============ CONFIRM DIALOG (Astro style) ============ */}
+      {/* ============ EDIT MODAL ============ */}
+      <Modal open={editOpen} onClose={() => setEditOpen(false)}>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-bold text-navy">Edit License Key</h3>
+            <p className="text-xs text-muted mt-0.5">
+              Update key details, status, or product
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+              Product
+            </label>
+            <ProductSelect
+              products={products}
+              value={editProductId || undefined}
+              onChange={(id) => {
+                setEditProductId(id ?? 0);
+                setEditVariantId(undefined);
+              }}
+              placeholder="— Select Product —"
+              visibleCount={10}
+            />
+          </div>
+
+          <Input
+            label="License Key"
+            value={editKey}
+            onChange={(e) => setEditKey(e.target.value.toUpperCase())}
+            placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+          />
+
+          <div>
+            <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
+              Status
+            </label>
+            <select
+              value={editStatus}
+              onChange={(e) => setEditStatus(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-navy focus:outline-none focus:border-brand"
+            >
+              <option value="AVAILABLE">AVAILABLE</option>
+              <option value="RESERVED">RESERVED</option>
+              <option value="SOLD">SOLD</option>
+              <option value="REVOKED">REVOKED</option>
+            </select>
+          </div>
+
+          {editError && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">
+              {editError}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setEditOpen(false)}
+              disabled={updateKey.isPending}
+              className="w-full rounded-xl px-5 py-2.5 border border-gray-200 text-navy text-sm font-bold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <Button
+              fullWidth
+              onClick={handleEditSave}
+              loading={updateKey.isPending}
+            >
+              Update Key
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ============ CONFIRM DIALOG ============ */}
       {createPortal(
         <AnimatePresence>
           {confirmState.open && confirmState.key && (
@@ -931,11 +1043,10 @@ export default function AdminKeys() {
                   <button
                     onClick={handleConfirmAction}
                     disabled={confirmPending}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${
-                      confirmState.actionType === "revoke"
-                        ? "bg-yellow-600 hover:bg-yellow-700"
-                        : "bg-red-600 hover:bg-red-700"
-                    }`}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-white text-xs font-semibold disabled:opacity-60 ${confirmState.actionType === "revoke"
+                      ? "bg-yellow-600 hover:bg-yellow-700"
+                      : "bg-red-600 hover:bg-red-700"
+                      }`}
                   >
                     {confirmPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,6 +9,11 @@ import {
   Tag,
   AlertCircle,
   CheckCircle,
+  Filter,
+  X,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Modal from "../../../components/ui/Modal";
 import Button from "../../../components/ui/Button";
@@ -34,8 +39,33 @@ const EMPTY: CouponRequest = {
   isActive: true,
 };
 
+const PAGE_SIZE = 10;
+
 export default function AdminCoupons() {
-  const { data, isLoading, isError, refetch } = useAdminCoupons();
+  const [page, setPage] = useState(0);
+
+  const [filterStatus, setFilterStatus] = useState<"ALL" | "active" | "inactive">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "PERCENT" | "FLAT">("ALL");
+  const [filterValueMin, setFilterValueMin] = useState<string>("");
+  const [filterValueMax, setFilterValueMax] = useState<string>("");
+
+  const [draftStatus, setDraftStatus] = useState<"ALL" | "active" | "inactive">("ALL");
+  const [draftType, setDraftType] = useState<"ALL" | "PERCENT" | "FLAT">("ALL");
+  const [draftValueMin, setDraftValueMin] = useState<string>("");
+  const [draftValueMax, setDraftValueMax] = useState<string>("");
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  const { data, isLoading, isError, refetch, isRefetching } = useAdminCoupons(
+    page,
+    PAGE_SIZE,
+    filterStatus === "ALL" ? undefined : filterStatus,
+    filterType === "ALL" ? undefined : filterType,
+    filterValueMin ? Number(filterValueMin) : undefined,
+    filterValueMax ? Number(filterValueMax) : undefined,
+  );
+
   const create = useCreateCoupon();
   const update = useUpdateCoupon();
   const del = useDeleteCoupon();
@@ -60,7 +90,82 @@ export default function AdminCoupons() {
     return () => clearTimeout(t);
   }, [toast]);
 
+  // Close popover on outside click / ESC
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        closeFilterAndResetDrafts();
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeFilterAndResetDrafts();
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [filterOpen, filterStatus, filterType, filterValueMin, filterValueMax]);
+
   const coupons = data?.content || [];
+  const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || 0;
+
+  const hasFilters =
+    filterStatus !== "ALL" ||
+    filterType !== "ALL" ||
+    filterValueMin !== "" ||
+    filterValueMax !== "";
+
+  const rangeStart = coupons.length === 0 ? 0 : page * PAGE_SIZE + 1;
+  const rangeEnd = page * PAGE_SIZE + coupons.length;
+
+  const openFilter = () => {
+    setDraftStatus(filterStatus);
+    setDraftType(filterType);
+    setDraftValueMin(filterValueMin);
+    setDraftValueMax(filterValueMax);
+    setFilterOpen(true);
+  };
+
+  const closeFilterAndResetDrafts = () => {
+    setFilterOpen(false);
+    setDraftStatus(filterStatus);
+    setDraftType(filterType);
+    setDraftValueMin(filterValueMin);
+    setDraftValueMax(filterValueMax);
+  };
+
+  const applyFilter = () => {
+    setFilterStatus(draftStatus);
+    setFilterType(draftType);
+    setFilterValueMin(draftValueMin);
+    setFilterValueMax(draftValueMax);
+    setPage(0);
+    setFilterOpen(false);
+    setToast("Filter applied");
+  };
+
+  const clearFilter = () => {
+    setDraftStatus("ALL");
+    setDraftType("ALL");
+    setDraftValueMin("");
+    setDraftValueMax("");
+    setFilterStatus("ALL");
+    setFilterType("ALL");
+    setFilterValueMin("");
+    setFilterValueMax("");
+    setPage(0);
+    setFilterOpen(false);
+    setToast("Filter cleared");
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
+    setToast("Refreshed successfully");
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -149,9 +254,134 @@ export default function AdminCoupons() {
             Manage your discount coupons and offers
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus size={16} /> Add Coupon
-        </Button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Filter */}
+          <div ref={filterRef} className="relative">
+            <button
+              onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
+                }`}
+            >
+              <Filter className="h-4 w-4" />
+              Filter
+              {hasFilters && (
+                <span className="ml-0.5 h-4 w-4 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center">
+                  !
+                </span>
+              )}
+            </button>
+
+            {filterOpen && (
+              <div className="absolute right-0 mt-2 w-[460px] max-w-[92vw] bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 p-4">
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                  <span className="text-[11px] font-bold text-navy uppercase tracking-wider">
+                    Filters
+                  </span>
+                  <button
+                    onClick={() => setFilterOpen(false)}
+                    className="p-1 rounded hover:bg-gray-100 text-muted"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={draftStatus}
+                      onChange={(e) => setDraftStatus(e.target.value as any)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="ALL">All</option>
+                      <option value="active">ACTIVE</option>
+                      <option value="inactive">INACTIVE</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Type
+                    </label>
+                    <select
+                      value={draftType}
+                      onChange={(e) => setDraftType(e.target.value as any)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="ALL">All</option>
+                      <option value="PERCENT">PERCENT (%)</option>
+                      <option value="FLAT">FLAT (₹)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Value Min
+                    </label>
+                    <input
+                      type="number"
+                      value={draftValueMin}
+                      onChange={(e) => setDraftValueMin(e.target.value)}
+                      placeholder="0"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Value Max
+                    </label>
+                    <input
+                      type="number"
+                      value={draftValueMax}
+                      onChange={(e) => setDraftValueMax(e.target.value)}
+                      placeholder="1000"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={clearFilter}
+                    className="flex-1 rounded-lg px-3 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-gray-50 transition"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={applyFilter}
+                    className="flex-1 rounded-lg px-3 py-2 bg-brand text-white text-xs font-semibold hover:bg-brand-dark transition"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Refresh */}
+          <button
+            onClick={handleRefresh}
+            disabled={isRefetching}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 disabled:opacity-60 transition"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+
+          {/* Add */}
+          <Button onClick={openCreate}>
+            <Plus size={16} /> Add Coupon
+          </Button>
+        </div>
       </div>
 
       {isLoading && (
@@ -165,7 +395,7 @@ export default function AdminCoupons() {
           <AlertCircle className="h-7 w-7 text-danger mx-auto mb-3" />
           <p className="text-sm text-navy mb-3">Failed to load coupons</p>
           <button
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             className="rounded-lg px-4 py-2 border border-gray-200 text-xs font-semibold text-navy hover:bg-soft"
           >
             Retry
@@ -178,12 +408,18 @@ export default function AdminCoupons() {
           <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-brand to-brand-light mb-4">
             <Tag className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-base font-bold text-navy mb-1">No coupons yet</h2>
-          <p className="text-sm text-muted">Create your first coupon code.</p>
+          <h2 className="text-base font-bold text-navy mb-1">
+            {hasFilters ? "No matching coupons" : "No coupons yet"}
+          </h2>
+          <p className="text-sm text-muted">
+            {hasFilters
+              ? "Try clearing filters."
+              : "Create your first coupon code."}
+          </p>
         </div>
       )}
 
-      {!isLoading && coupons.length > 0 && (
+      {!isLoading && !isError && coupons.length > 0 && (
         <Reveal>
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
@@ -209,7 +445,9 @@ export default function AdminCoupons() {
                         {c.code}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge color="blue">{c.type}</Badge>
+                        <Badge color={c.type === "PERCENT" ? "green" : "yellow"}>
+                          {c.type}
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 font-bold text-navy">
                         {c.type === "PERCENT" ? `${c.value}%` : `₹${c.value}`}
@@ -252,8 +490,40 @@ export default function AdminCoupons() {
         </Reveal>
       )}
 
+      {/* PAGINATION */}
+      {!isLoading && !isError && coupons.length > 0 && (
+        <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-4 py-3">
+          <div className="text-xs text-muted">
+            Showing <span className="font-semibold text-navy">{rangeStart}</span>
+            {" – "}
+            <span className="font-semibold text-navy">{rangeEnd}</span> of{" "}
+            <span className="font-semibold text-navy">{totalElements}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-xs font-semibold text-navy px-2">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-gray-200 text-navy hover:bg-gray-50 disabled:opacity-40 transition"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ============ ADD / EDIT MODAL ============ */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="max-w-2xl">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-bold text-navy">
@@ -264,20 +534,14 @@ export default function AdminCoupons() {
             </p>
           </div>
 
-          {/* Form fields — untouched */}
-          <Input
-            label="Code"
-            value={form.code}
-            onChange={(e) => update_("code", e.target.value.toUpperCase())}
-            placeholder="SAVE10"
-          />
-          <Input
-            label="Description"
-            value={form.description || ""}
-            onChange={(e) => update_("description", e.target.value)}
-            placeholder="10% off on all products"
-          />
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 1: Code + Type + Value */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Input
+              label="Code"
+              value={form.code}
+              onChange={(e) => update_("code", e.target.value.toUpperCase())}
+              placeholder="SAVE10"
+            />
             <div>
               <label className="block text-xs font-semibold text-navy mb-1.5 uppercase tracking-wider">
                 Type
@@ -298,7 +562,17 @@ export default function AdminCoupons() {
               onChange={(e) => update_("value", Number(e.target.value))}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* Row 2: Description (full width) */}
+          <Input
+            label="Description"
+            value={form.description || ""}
+            onChange={(e) => update_("description", e.target.value)}
+            placeholder="10% off on all products"
+          />
+
+          {/* Row 3: Min Order + Max Discount */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Min Order (₹)"
               type="number"
@@ -319,7 +593,9 @@ export default function AdminCoupons() {
               }
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* Row 4: Usage Limit + Per User Limit */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Usage Limit"
               type="number"
@@ -338,6 +614,8 @@ export default function AdminCoupons() {
               onChange={(e) => update_("perUserLimit", Number(e.target.value))}
             />
           </div>
+
+          {/* Row 5: Active toggle */}
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -353,7 +631,7 @@ export default function AdminCoupons() {
             </div>
           )}
 
-          {/* Buttons — swapped + light blue hover */}
+          {/* Row 6: Buttons */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"

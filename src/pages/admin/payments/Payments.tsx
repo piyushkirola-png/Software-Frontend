@@ -14,63 +14,69 @@ import {
   Copy,
   Check,
   Eye,
+  Download,
 } from "lucide-react";
 import Modal from "../../../components/ui/Modal";
 import Reveal from "../../../components/animations/Reveal";
 import { useAdminPayments } from "../../../api/queries/useAdmin";
+import { adminService } from "../../../api/services/adminService";
 import type { Payment } from "../../../types/payment";
+import { getErrorMessage } from "../../../lib/api-client";
 
 const PAGE_SIZE = 10;
 
 export default function AdminPayments() {
   const [page, setPage] = useState(0);
-  const [status, setStatus] = useState("");
-  const [gateway, setGateway] = useState("");
-  const [search, setSearch] = useState("");
 
-  const [filterOpen, setFilterOpen] = useState(false);
+  // applied filters
+  const [filterOrderId, setFilterOrderId] = useState("");
+  const [filterPaymentId, setFilterPaymentId] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterGateway, setFilterGateway] = useState("");
+  const [filterMin, setFilterMin] = useState("");
+  const [filterMax, setFilterMax] = useState("");
+
+  // draft filters
+  const [draftOrderId, setDraftOrderId] = useState("");
+  const [draftPaymentId, setDraftPaymentId] = useState("");
   const [draftStatus, setDraftStatus] = useState("");
   const [draftGateway, setDraftGateway] = useState("");
-  const [draftSearch, setDraftSearch] = useState("");
+  const [draftMin, setDraftMin] = useState("");
+  const [draftMax, setDraftMax] = useState("");
 
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isError, refetch, isRefetching } = useAdminPayments(
     page,
     PAGE_SIZE,
-    status || undefined,
-    gateway || undefined,
-    search || undefined,
+    filterStatus || undefined,
+    filterGateway || undefined,
+    filterOrderId || undefined,
+    filterPaymentId || undefined,
+    filterMin ? Number(filterMin) : undefined,
+    filterMax ? Number(filterMax) : undefined,
   );
 
   const [viewing, setViewing] = useState<Payment | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Toast auto-dismiss
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Outside click / ESC for filter
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        setFilterOpen(false);
-        setDraftStatus(status);
-        setDraftGateway(gateway);
-        setDraftSearch(search);
+        closeFilterAndResetDrafts();
       }
     };
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setFilterOpen(false);
-        setDraftStatus(status);
-        setDraftGateway(gateway);
-        setDraftSearch(search);
-      }
+      if (e.key === "Escape") closeFilterAndResetDrafts();
     };
     document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onEsc);
@@ -78,40 +84,76 @@ export default function AdminPayments() {
       document.removeEventListener("mousedown", onClickOutside);
       document.removeEventListener("keydown", onEsc);
     };
-  }, [filterOpen, status, gateway, search]);
+  }, [
+    filterOpen,
+    filterOrderId,
+    filterPaymentId,
+    filterStatus,
+    filterGateway,
+    filterMin,
+    filterMax,
+  ]);
 
   const payments = data?.content || [];
   const totalPages = data?.totalPages || 1;
   const totalElements = data?.totalElements || 0;
 
-  const hasFilters = status !== "" || gateway !== "" || search.trim() !== "";
+  const hasFilters =
+    filterOrderId !== "" ||
+    filterPaymentId !== "" ||
+    filterStatus !== "" ||
+    filterGateway !== "" ||
+    filterMin !== "" ||
+    filterMax !== "";
 
   const rangeStart = payments.length === 0 ? 0 : page * PAGE_SIZE + 1;
   const rangeEnd = page * PAGE_SIZE + payments.length;
 
   const openFilter = () => {
-    setDraftStatus(status);
-    setDraftGateway(gateway);
-    setDraftSearch(search);
+    setDraftOrderId(filterOrderId);
+    setDraftPaymentId(filterPaymentId);
+    setDraftStatus(filterStatus);
+    setDraftGateway(filterGateway);
+    setDraftMin(filterMin);
+    setDraftMax(filterMax);
     setFilterOpen(true);
   };
 
+  const closeFilterAndResetDrafts = () => {
+    setFilterOpen(false);
+    setDraftOrderId(filterOrderId);
+    setDraftPaymentId(filterPaymentId);
+    setDraftStatus(filterStatus);
+    setDraftGateway(filterGateway);
+    setDraftMin(filterMin);
+    setDraftMax(filterMax);
+  };
+
   const applyFilter = () => {
-    setStatus(draftStatus);
-    setGateway(draftGateway);
-    setSearch(draftSearch);
+    setFilterOrderId(draftOrderId);
+    setFilterPaymentId(draftPaymentId);
+    setFilterStatus(draftStatus);
+    setFilterGateway(draftGateway);
+    setFilterMin(draftMin);
+    setFilterMax(draftMax);
     setPage(0);
     setFilterOpen(false);
     setToast("Filter applied");
   };
 
   const clearFilter = () => {
+    setDraftOrderId("");
+    setDraftPaymentId("");
     setDraftStatus("");
     setDraftGateway("");
-    setDraftSearch("");
-    setStatus("");
-    setGateway("");
-    setSearch("");
+    setDraftMin("");
+    setDraftMax("");
+    setFilterOrderId("");
+    setFilterPaymentId("");
+    setFilterStatus("");
+    setFilterGateway("");
+    setFilterMin("");
+    setFilterMax("");
     setPage(0);
     setFilterOpen(false);
     setToast("Filter cleared");
@@ -120,6 +162,25 @@ export default function AdminPayments() {
   const handleRefresh = async () => {
     await refetch();
     setToast("Refreshed successfully");
+  };
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      await adminService.exportPaymentsCsv(
+        filterStatus || undefined,
+        filterGateway || undefined,
+        filterOrderId || undefined,
+        filterPaymentId || undefined,
+        filterMin ? Number(filterMin) : undefined,
+        filterMax ? Number(filterMax) : undefined,
+      );
+      setToast("CSV downloaded");
+    } catch (e) {
+      setToast(getErrorMessage(e) || "Export failed");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -139,8 +200,8 @@ export default function AdminPayments() {
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                ? "border-brand/40 bg-brand/5 text-brand"
-                : "border-gray-200 text-navy hover:bg-gray-50"
+                  ? "border-brand/40 bg-brand/5 text-brand"
+                  : "border-gray-200 text-navy hover:bg-gray-50"
                 }`}
             >
               <Filter className="h-4 w-4" />
@@ -166,22 +227,36 @@ export default function AdminPayments() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {/* Search */}
-                  <div className="sm:col-span-2">
+                {/* Row 1: Order ID + Payment ID */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                  <div>
                     <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Search (Order / Gateway IDs)
+                      Order ID
                     </label>
                     <input
                       type="text"
-                      value={draftSearch}
-                      onChange={(e) => setDraftSearch(e.target.value)}
-                      placeholder="SU-2026..., cf_order_..."
+                      value={draftOrderId}
+                      onChange={(e) => setDraftOrderId(e.target.value)}
+                      placeholder="SU-2026..."
                       className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Payment ID
+                    </label>
+                    <input
+                      type="text"
+                      value={draftPaymentId}
+                      onChange={(e) => setDraftPaymentId(e.target.value)}
+                      placeholder="145723XXXXX"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                </div>
 
-                  {/* Status */}
+                {/* Row 2: Status + Gateway */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                   <div>
                     <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Status
@@ -197,8 +272,6 @@ export default function AdminPayments() {
                       <option value="FAILED">FAILED</option>
                     </select>
                   </div>
-
-                  {/* Gateway */}
                   <div>
                     <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
                       Gateway
@@ -217,6 +290,35 @@ export default function AdminPayments() {
                   </div>
                 </div>
 
+                {/* Row 3: Min + Max */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Min (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={draftMin}
+                      onChange={(e) => setDraftMin(e.target.value)}
+                      placeholder="0"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Max (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={draftMax}
+                      onChange={(e) => setDraftMax(e.target.value)}
+                      placeholder="100000"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-navy focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 4: Clear + Apply */}
                 <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
                   <button
                     onClick={clearFilter}
@@ -234,6 +336,20 @@ export default function AdminPayments() {
               </div>
             )}
           </div>
+
+          {/* Export CSV */}
+          <button
+            onClick={handleExport}
+            disabled={exporting || totalElements === 0}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border border-gray-200 text-sm font-semibold text-navy hover:bg-gray-50 disabled:opacity-60 transition"
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Export CSV
+          </button>
 
           {/* Refresh */}
           <button
@@ -295,7 +411,7 @@ export default function AdminPayments() {
               <table className="w-full min-w-[1000px] text-sm">
                 <thead>
                   <tr className="bg-soft text-left text-[11px] uppercase tracking-wider text-muted font-semibold">
-                    <th className="px-4 py-3">Order</th>
+                    <th className="px-4 py-3">Order ID</th>
                     <th className="px-4 py-3">Gateway</th>
                     <th className="px-4 py-3">Payment ID</th>
                     <th className="px-4 py-3">Amount</th>
@@ -335,16 +451,6 @@ export default function AdminPayments() {
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1">
-                          {p.paymentLink && (
-                            <a
-                              href={p.paymentLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
-                              title="Open Payment Link"
-                            >
-                            </a>
-                          )}
                           <button
                             onClick={() => setViewing(p)}
                             className="w-8 h-8 rounded-lg hover:bg-brand/10 text-brand flex items-center justify-center"
@@ -428,7 +534,6 @@ export default function AdminPayments() {
   );
 }
 
-// SUB COMPONENTS
 function PaymentStatusBadge({ status }: { status: string }) {
   const cls =
     status === "SUCCESS"
@@ -463,7 +568,6 @@ function PaymentDetail({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div>
         <h3 className="text-lg font-bold text-navy">Payment {payment.id}</h3>
         <p className="text-xs text-muted mt-0.5">
@@ -471,11 +575,8 @@ function PaymentDetail({
         </p>
       </div>
 
-      {/* Two-column body */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-gray-100 pt-5">
-        {/* All info */}
         <div className="space-y-4">
-          {/* Amount + Status */}
           <div className="grid grid-cols-2 gap-4 text-sm border-b border-gray-100 pb-4">
             <div>
               <div className="text-[11px] text-muted uppercase tracking-wider mb-1">
@@ -550,7 +651,6 @@ function PaymentDetail({
           )}
         </div>
 
-        {/* ─── RIGHT: Raw response ─── */}
         {payment.rawResponse && (
           <div>
             <div className="text-[11px] text-muted uppercase tracking-wider mb-1">

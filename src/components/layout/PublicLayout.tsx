@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import WhatsAppButton from "../ui/WhatsAppButton";
 import AnnouncementBar from "../home/AnnouncementBar";
 import TrustStrip from "../home/TrustStrip";
 
@@ -15,7 +14,6 @@ export default function PublicLayout() {
       </main>
       <TrustStrip />
       <Footer />
-      <WhatsAppButton />
     </div>
   );
 }

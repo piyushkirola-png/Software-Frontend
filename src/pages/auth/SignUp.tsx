@@ -75,7 +75,7 @@ export default function SignUp() {
       return toast.error("Passwords do not match");
 
     setLoading(true);
-    const t = toast.loading("Creating your accountâ€¦");
+    const t = toast.loading("Creating your account");
     try {
       await register({
         name: name.trim(),
@@ -100,7 +100,7 @@ export default function SignUp() {
     if (code.length !== 6) return toast.error("Enter the 6-digit code");
 
     setLoading(true);
-    const t = toast.loading("Verifyingâ€¦");
+    const t = toast.loading("Verifying");
     try {
       const res = await verifySignup(email.trim(), code);
       toast.success(`Welcome to Software Universe, ${res.name}!`, { id: t });

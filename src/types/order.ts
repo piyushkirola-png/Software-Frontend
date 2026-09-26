@@ -12,6 +12,7 @@ export interface OrderItem {
   unitPrice: number;
   lineTotal: number;
   licenseKey?: string | null;
+  licenseKeys?: string[] | null;
 }
 
 export interface Order {

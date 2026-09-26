@@ -306,8 +306,8 @@ export default function AdminProducts() {
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
                 }`}
             >
               <Filter className="h-4 w-4" />
@@ -407,11 +407,29 @@ export default function AdminProducts() {
                   </div>
                 </div>
 
-                {/* Row 3: Price Min + Max */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {/* Row 3: Sort + Min + Max */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Price Min (₹)
+                      Sort By
+                    </label>
+                    <select
+                      value={draftSort}
+                      onChange={(e) => setDraftSort(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="name_asc">Name (A→Z)</option>
+                      <option value="name_desc">Name (Z→A)</option>
+                      <option value="price_asc">Price (Low → High)</option>
+                      <option value="price_desc">Price (High → Low)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Min (₹)
                     </label>
                     <input
                       type="number"
@@ -421,9 +439,10 @@ export default function AdminProducts() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
+
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Price Max (₹)
+                      Max (₹)
                     </label>
                     <input
                       type="number"
@@ -433,25 +452,6 @@ export default function AdminProducts() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     />
                   </div>
-                </div>
-
-                {/* Row 4: Sort */}
-                <div className="mt-3">
-                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                    Sort By
-                  </label>
-                  <select
-                    value={draftSort}
-                    onChange={(e) => setDraftSort(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
-                  >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="name_asc">Name (A→Z)</option>
-                    <option value="name_desc">Name (Z→A)</option>
-                    <option value="price_asc">Price (Low → High)</option>
-                    <option value="price_desc">Price (High → Low)</option>
-                  </select>
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
@@ -679,7 +679,7 @@ export default function AdminProducts() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div>
               <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
                 Category
@@ -708,6 +708,40 @@ export default function AdminProducts() {
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5">
+            <div>
+              <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
+                Cutted Price (₹)
+              </label>
+              <input
+                type="number"
+                value={form.mrp ?? ""}
+                onChange={(e) =>
+                  update_(
+                    "mrp",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                placeholder="1000"
+                className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
+                Price (₹)
+              </label>
+              <input
+                type="number"
+                value={form.price ?? ""}
+                onChange={(e) =>
+                  update_("price", e.target.value ? Number(e.target.value) : 0)
+                }
+                placeholder="500"
+                className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
+              />
+            </div>
             <div>
               <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
                 Slug
@@ -719,36 +753,6 @@ export default function AdminProducts() {
                 className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2.5">
-            {[
-              { label: "Cutted Price (₹)", key: "mrp", placeholder: "1000" },
-              { label: "Price (₹)", key: "price", placeholder: "500" },
-              { label: "Stock", key: "stockQuantity", placeholder: "0" },
-            ].map((f) => (
-              <div key={f.key}>
-                <label className="block text-[10px] font-bold text-navy mb-1 uppercase tracking-wider">
-                  {f.label}
-                </label>
-                <input
-                  type="number"
-                  value={(form as any)[f.key] ?? ""}
-                  onChange={(e) =>
-                    update_(
-                      f.key as any,
-                      e.target.value
-                        ? Number(e.target.value)
-                        : f.key === "mrp"
-                          ? undefined
-                          : 0,
-                    )
-                  }
-                  placeholder={f.placeholder}
-                  className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-brand"
-                />
-              </div>
-            ))}
           </div>
 
           <div>

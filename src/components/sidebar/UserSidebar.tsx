@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Package,
   Key,
-  Download,
   User,
   Lock,
   LogOut,
@@ -19,7 +18,6 @@ const navItems = [
   { label: "Dashboard", href: "/user/dashboard", icon: LayoutDashboard },
   { label: "Orders", href: "/user/orders", icon: Package },
   { label: "License Keys", href: "/user/keys", icon: Key },
-  { label: "Downloads", href: "/user/downloads", icon: Download },
   { label: "Profile", href: "/user/profile", icon: User },
   { label: "Update Password", href: "/user/password", icon: Lock },
 ];
@@ -44,7 +42,7 @@ export default function UserSidebar() {
           <img
             src="/assets/logo.png"
             alt="Softora"
-            className="h-8 w-auto object-contain brightness-0 invert"
+            className="h-8 w-auto object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
@@ -71,10 +69,9 @@ export default function UserSidebar() {
             end={item.href === "/user/dashboard"}
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-gradient-to-r from-brand/30 to-brand-light/20 text-white border border-brand-light/30"
-                  : "text-gray-300 hover:text-white hover:bg-white/5"
+              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? "bg-gradient-to-r from-brand/30 to-brand-light/20 text-white border border-brand-light/30"
+                : "text-gray-300 hover:text-white hover:bg-white/5"
               }`
             }
           >

@@ -27,6 +27,13 @@ import { useAuthContext } from "../../../lib/AuthContext";
 import { getErrorMessage } from "../../../lib/api-client";
 import type { User, Gender } from "../../../types/user";
 import Button from "../../../components/ui/Button";
+import PhoneInput from "../../../components/ui/PhoneInput";
+import { DEFAULT_COUNTRY, resolveCountry } from "../../../utils/countries";
+import CountrySelect from "../../../components/ui/CountrySelect";
+import {
+  lookupPostcode,
+  isPostcodeComplete,
+} from "../../../utils/pincode";
 
 export default function Profile() {
   const { showToast, setUser } = useAuthContext();
@@ -96,7 +103,7 @@ export default function Profile() {
         }}
       />
 
-      {/* Toast — PORTAL */}
+      {/* Toast */}
       {createPortal(
         <AnimatePresence>
           {toast && (
@@ -160,7 +167,7 @@ function ViewMode({ profile }: { profile: User }) {
           <div className="relative h-24 w-24 rounded-2xl bg-white shadow-lg border-4 border-white overflow-hidden shrink-0">
             {showImage ? (
               <img
-                src={avatarSrc}
+                src={avatarSrc ?? undefined}
                 alt={profile.name}
                 className="h-full w-full object-cover"
                 onError={() => setImgFailed(true)}
@@ -222,10 +229,14 @@ function EditProfileModal({
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeMessage, setPincodeMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastLookupRef = useRef<string>("");
 
   useEffect(() => {
     if (!open) return;
+    const resolved = resolveCountry(profile.country);
     setForm({
       name: profile.name,
       phone: profile.phone || "",
@@ -233,23 +244,72 @@ function EditProfileModal({
       currentAddress: profile.currentAddress || "",
       city: profile.city || "",
       state: profile.state || "",
-      country: profile.country || "",
+      country: resolved.name,
       pincode: profile.pincode || "",
     });
     setPendingAvatarFile(null);
     setAvatarPreview(userService.absoluteAvatarUrl(profile.avatarUrl));
     setError(null);
+    setPincodeMessage(null);
     setConfirmOpen(false);
+    lastLookupRef.current = "";
   }, [open, profile]);
 
   const onField =
     (key: string) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-      >,
-    ) =>
-      setForm((f: any) => ({ ...f, [key]: e.target.value }));
+      (
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >,
+      ) =>
+        setForm((f: any) => ({ ...f, [key]: e.target.value }));
+
+  const handlePincodeLookup = async (pincode: string, countryName: string) => {
+    const country = resolveCountry(countryName);
+    if (!isPostcodeComplete(country.code, pincode)) return;
+
+    const key = `${country.code}:${pincode}`;
+    if (lastLookupRef.current === key) return;
+    lastLookupRef.current = key;
+
+    setPincodeLoading(true);
+    setPincodeMessage(null);
+    try {
+      const result = await lookupPostcode(country.code, pincode);
+      if (result) {
+        setForm((f: any) => ({
+          ...f,
+          city: result.city || f.city,
+          state: result.state || f.state,
+        }));
+        setPincodeMessage(null);
+      } else {
+        setPincodeMessage("Couldn't find this postcode");
+      }
+    } catch {
+      setPincodeMessage("Lookup failed. Please enter manually.");
+    } finally {
+      setPincodeLoading(false);
+    }
+  };
+
+  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\s/g, "");
+    setForm((f: any) => ({ ...f, pincode: val }));
+    setPincodeMessage(null);
+
+    const country = resolveCountry(form.country);
+    if (isPostcodeComplete(country.code, val)) {
+      handlePincodeLookup(val, form.country);
+    }
+  };
+
+  const handlePincodeBlur = () => {
+    const country = resolveCountry(form.country);
+    if (form.pincode) {
+      handlePincodeLookup(form.pincode, country.name);
+    }
+  };
 
   const handlePickFile = () => fileInputRef.current?.click();
 
@@ -381,8 +441,8 @@ function EditProfileModal({
                     </div>
                   </div>
 
-                  {/* Row 1 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {/* Row 1: Name, Country, Email */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
                         Full Name
@@ -395,18 +455,13 @@ function EditProfileModal({
                         required
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-navy mb-1">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={form.phone ?? ""}
-                        onChange={onField("phone")}
-                        placeholder="+91 98765 43210"
-                        className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy placeholder:text-muted focus:outline-none focus:border-brand"
-                      />
-                    </div>
+                    <CountrySelect
+                      label="Country"
+                      value={form.country ?? DEFAULT_COUNTRY.name}
+                      onChange={(name) =>
+                        setForm((f: any) => ({ ...f, country: name }))
+                      }
+                    />
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
                         Email
@@ -418,6 +473,16 @@ function EditProfileModal({
                         className="w-full px-3 py-2 rounded-lg bg-soft border border-gray-200 text-sm text-muted cursor-not-allowed"
                       />
                     </div>
+                  </div>
+
+                  {/* Row 2: Phone, Gender */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <PhoneInput
+                      countryCode={resolveCountry(form.country).code}
+                      value={form.phone ?? ""}
+                      onChange={(v) => setForm((f: any) => ({ ...f, phone: v }))}
+                      label="Phone Number"
+                    />
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
                         Gender
@@ -425,7 +490,7 @@ function EditProfileModal({
                       <select
                         value={form.gender ?? ""}
                         onChange={onField("gender")}
-                        className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand appearance-none"
+                        className="w-full px-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand"
                       >
                         <option value="">Select</option>
                         <option value="MALE">Male</option>
@@ -448,18 +513,30 @@ function EditProfileModal({
                     />
                   </div>
 
-                  {/* Row 2 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Row 3: Pincode, City, State */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
                         Pincode
+                        {pincodeLoading && (
+                          <Loader2 className="inline-block ml-1 h-3 w-3 animate-spin text-brand" />
+                        )}
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
                         value={form.pincode ?? ""}
-                        onChange={onField("pincode")}
+                        onChange={handlePincodeChange}
+                        onBlur={handlePincodeBlur}
+                        placeholder="e.g. 121003"
+                        maxLength={10}
                         className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand"
                       />
+                      {pincodeMessage && (
+                        <p className="mt-1 text-[11px] text-danger">
+                          {pincodeMessage}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
@@ -472,10 +549,6 @@ function EditProfileModal({
                         className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand"
                       />
                     </div>
-                  </div>
-
-                  {/* Row 3 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-navy mb-1">
                         State
@@ -484,17 +557,6 @@ function EditProfileModal({
                         type="text"
                         value={form.state ?? ""}
                         onChange={onField("state")}
-                        className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-navy mb-1">
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        value={form.country ?? ""}
-                        onChange={onField("country")}
                         className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm text-navy focus:outline-none focus:border-brand"
                       />
                     </div>

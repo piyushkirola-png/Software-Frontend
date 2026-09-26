@@ -6,6 +6,7 @@ export interface Review {
   userName: string;
   userInitials: string;
   rating: number;
+  userAvatarUrl?: string | null;
   title?: string | null;
   comment?: string | null;
   isVerifiedPurchase: boolean;

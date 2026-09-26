@@ -31,8 +31,7 @@ import UserLayout from "./components/layout/UserLayout";
 import UserDashboard from "./pages/user/dashboard/Dashboard";
 import UserOrders from "./pages/user/orders/Orders";
 import OrderDetail from "./pages/user/orders/OrderDetail";
-import LicenseKeys from "./pages/user/keys/LicenseKeys";
-import Downloads from "./pages/user/downloads/Downloads";
+import LicenseKeys from "./pages/user/licensekeys/LicenseKeys";
 import Profile from "./pages/user/profile/Profile";
 import UpdatePassword from "./pages/user/profile/UpdatePassword";
 
@@ -43,7 +42,7 @@ import AdminCategories from "./pages/admin/categories/Categories";
 import AdminProducts from "./pages/admin/products/Products";
 import AdminCoupons from "./pages/admin/coupons/Coupons";
 import AdminOrders from "./pages/admin/orders/Orders";
-import AdminKeys from "./pages/admin/keys/Keys";
+import AdminKeys from "./pages/admin/licensekeys/LicenseKeys";
 import AdminUsers from "./pages/admin/users/Users";
 import AdminReviews from "./pages/admin/reviews/Reviews";
 import AdminPayments from "./pages/admin/payments/Payments";
@@ -142,7 +141,6 @@ export default function App() {
               <Route path="orders" element={<UserOrders />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="keys" element={<LicenseKeys />} />
-              <Route path="downloads" element={<Downloads />} />
               <Route path="profile" element={<Profile />} />
               <Route path="password" element={<UpdatePassword />} />
             </Route>

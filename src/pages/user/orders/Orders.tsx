@@ -22,13 +22,10 @@ const PAGE_SIZE = 10;
 export default function UserOrders() {
   const [page, setPage] = useState(0);
 
-  // applied filters
   const [filterOrderNumber, setFilterOrderNumber] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [filterMinTotal, setFilterMinTotal] = useState<string>("");
   const [filterMaxTotal, setFilterMaxTotal] = useState<string>("");
-
-  // draft filters
   const [draftOrderNumber, setDraftOrderNumber] = useState("");
   const [draftStatus, setDraftStatus] = useState<string>("ALL");
   const [draftMinTotal, setDraftMinTotal] = useState<string>("");
@@ -58,7 +55,6 @@ export default function UserOrders() {
     filterMinTotal !== "" ||
     filterMaxTotal !== "";
 
-  // Close popover on outside click / ESC
   useEffect(() => {
     if (!filterOpen) return;
     const onClickOutside = (e: MouseEvent) => {
@@ -188,7 +184,7 @@ export default function UserOrders() {
                   </button>
                 </div>
 
-                {/* Order Number */}
+                {/* Order Number (full width) */}
                 <div className="mb-3">
                   <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
                     Order ID
@@ -202,28 +198,26 @@ export default function UserOrders() {
                   />
                 </div>
 
-                {/* Status */}
-                <div className="mb-3">
-                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={draftStatus}
-                    onChange={(e) => setDraftStatus(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
-                  >
-                    <option value="ALL">All</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="SUCCESS">Success</option>
-                    <option value="FAILED">Failed</option>
-                  </select>
-                </div>
-
-                {/* Amount range */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Status + Min + Max (3 columns) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Amount Min (₹)
+                      Status
+                    </label>
+                    <select
+                      value={draftStatus}
+                      onChange={(e) => setDraftStatus(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
+                    >
+                      <option value="ALL">All</option>
+                      <option value="SUCCESS">SUCCESS</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="FAILED">FAILED</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
+                      Min (₹)
                     </label>
                     <input
                       type="number"
@@ -235,7 +229,7 @@ export default function UserOrders() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-muted uppercase tracking-wider mb-1">
-                      Amount Max (₹)
+                      Max (₹)
                     </label>
                     <input
                       type="number"

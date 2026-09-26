@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import Badge from "../../../components/ui/Badge";
 import Modal from "../../../components/ui/Modal";
-import Button from "../../../components/ui/Button";
 import Reveal from "../../../components/animations/Reveal";
 import { useAdminReviews } from "../../../api/queries/useAdmin";
 import {
@@ -26,11 +25,12 @@ import {
   useDeleteReview,
 } from "../../../api/mutations/adminMutations";
 import { getErrorMessage } from "../../../lib/api-client";
+import userService from "../../../api/services/userService";
 import type { Review } from "../../../types/review";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
-type StatusFilter = "all" | "pending" | "approved";
+type StatusFilter = "all" | "approved" | "pending";
 type RatingFilter = "all" | "5" | "4" | "3" | "2" | "1";
 type VerifiedFilter = "all" | "yes" | "no";
 
@@ -238,11 +238,10 @@ export default function AdminReviews() {
           <div ref={filterRef} className="relative">
             <button
               onClick={() => (filterOpen ? setFilterOpen(false) : openFilter())}
-              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${
-                hasFilters
-                  ? "border-brand/40 bg-brand/5 text-brand"
-                  : "border-gray-200 text-navy hover:bg-gray-50"
-              }`}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 border text-sm font-semibold transition ${hasFilters
+                ? "border-brand/40 bg-brand/5 text-brand"
+                : "border-gray-200 text-navy hover:bg-gray-50"
+                }`}
             >
               <Filter className="h-4 w-4" />
               Filter
@@ -313,8 +312,8 @@ export default function AdminReviews() {
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-navy focus:outline-none focus:border-brand"
                     >
                       <option value="all">All</option>
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
+                      <option value="approved">APPROVED</option>
+                      <option value="pending">PENDING</option>
                     </select>
                   </div>
 
@@ -417,9 +416,23 @@ export default function AdminReviews() {
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-[10px] shrink-0">
-                            {r.userInitials || r.userName?.[0]?.toUpperCase()}
-                          </div>
+                          {r.userAvatarUrl ? (
+                            <img
+                              src={
+                                userService.absoluteAvatarUrl(r.userAvatarUrl) ??
+                                undefined
+                              }
+                              alt={r.userName}
+                              className="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-[10px] shrink-0">
+                              {r.userInitials || r.userName?.[0]?.toUpperCase()}
+                            </div>
+                          )}
                           <span className="text-xs font-semibold text-navy truncate max-w-[120px]">
                             {r.userName}
                           </span>
@@ -576,7 +589,7 @@ export default function AdminReviews() {
         )}
       </Modal>
 
-      {/* ============ EDIT MODAL (status change only) ============ */}
+      {/* ============ EDIT MODAL ============ */}
       <Modal open={!!editing} onClose={() => setEditing(null)}>
         {editing && (
           <div className="space-y-4">

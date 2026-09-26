@@ -52,7 +52,7 @@ export default function AdminSidebar() {
           <img
             src="/assets/logo.png"
             alt="Softora"
-            className="h-8 w-auto object-contain brightness-0 invert"
+            className="h-8 w-auto object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
@@ -78,10 +78,9 @@ export default function AdminSidebar() {
             to={item.href}
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isActive
-                  ? "bg-gradient-to-r from-brand/30 to-brand-light/20 text-white border border-brand-light/30"
-                  : "text-gray-300 hover:text-white hover:bg-white/5"
+              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? "bg-gradient-to-r from-brand/30 to-brand-light/20 text-white border border-brand-light/30"
+                : "text-gray-300 hover:text-white hover:bg-white/5"
               }`
             }
           >

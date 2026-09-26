@@ -8,7 +8,6 @@ import FaqSection from "../components/home/FaqSection";
 import ReviewsCarousel from "../components/home/ReviewsCarousel";
 import TrustStrip from "../components/home/TrustStrip";
 import Footer from "../components/layout/Footer";
-import WhatsAppButton from "../components/ui/WhatsAppButton";
 
 export default function Home() {
   return (
@@ -25,7 +24,6 @@ export default function Home() {
         <TrustStrip />
       </main>
       <Footer />
-      <WhatsAppButton />
     </div>
   );
 }
